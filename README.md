@@ -1,4 +1,3 @@
-# SOCIS-AI-PT
 
 <div align="center">
   <img src="SOCIS-AI-PT.png" alt="SOCIS-AI-PT Logo" width="600" />
