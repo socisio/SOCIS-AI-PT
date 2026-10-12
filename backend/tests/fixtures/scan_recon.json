@@ -1,0 +1,121 @@
+{
+ "meta": {
+  "brand": "SOCIS-AI-PT",
+  "generated_at": "2026-10-07T11:12:16.139002+00:00",
+  "platform": "SOCIS-AI-PT",
+  "version": "1.0"
+ },
+ "scan": {
+  "id": "00000000-0000-4000-8000-000000000001",
+  "target": "192.0.2.10",
+  "scan_type": "recon_only",
+  "status": "completed",
+  "risk_level": "CRITICAL",
+  "created_at": "2026-10-07T11:07:33.646562+00:00",
+  "started_at": "2026-10-07T11:07:33.926236+00:00",
+  "completed_at": "2026-10-07T11:11:21.335377+00:00"
+ },
+ "assessment": {
+  "complete": true,
+  "tools_total": 4,
+  "tools_failed": 0,
+  "failures": []
+ },
+ "summary": {
+  "critical": 1,
+  "high": 3,
+  "medium": 1,
+  "low": 0,
+  "info": 0
+ },
+ "vulnerabilities": [
+  {
+   "id": "73e67c75-fc24-45dc-989e-c74644ba7b93",
+   "name": "Microsoft SMB (SMBv1)",
+   "severity": "critical",
+   "port": "445",
+   "service": "microsoft-ds",
+   "cve_id": null,
+   "cvss_score": null,
+   "description": "Windows 8.1 Pro 9600 SMB service exposes vulnerabilities like EternalBlue (CVE-2017-0144) and lack of SMBv1 patches.",
+   "created_at": "2026-10-07T11:11:21.319625+00:00"
+  },
+  {
+   "id": "8046f1dd-b204-4273-8f51-7049825de154",
+   "name": "Microsoft RPC (DCOM)",
+   "severity": "high",
+   "port": "135",
+   "service": "msrpc",
+   "cve_id": null,
+   "cvss_score": null,
+   "description": "Unauthenticated RPC endpoints may allow remote code execution via vulnerabilities like CVE-2017-0144.",
+   "created_at": "2026-10-07T11:11:21.321471+00:00"
+  },
+  {
+   "id": "77203939-35d9-478a-893f-eadfa5ca3660",
+   "name": "NetBIOS (SMB)",
+   "severity": "high",
+   "port": "139",
+   "service": "netbios-ssn",
+   "cve_id": null,
+   "cvss_score": null,
+   "description": "NetBIOS over TCP/IP (NBT) can be exploited for session enumeration and SMB relay attacks.",
+   "created_at": "2026-10-07T11:11:21.330302+00:00"
+  },
+  {
+   "id": "463d0af1-0d3e-4dcc-9318-2d5f89119b62",
+   "name": "Microsoft HTTPAPI (UPnP)",
+   "severity": "medium",
+   "port": "2869",
+   "service": "http",
+   "cve_id": null,
+   "cvss_score": null,
+   "description": "Exposes UPnP/SSDP services which may allow unauthorized device discovery or configuration changes.",
+   "created_at": "2026-10-07T11:11:21.332127+00:00"
+  },
+  {
+   "id": "36076343-f330-42a5-8d42-1ccb7e7cb539",
+   "name": "Open SMTP (Relay)",
+   "severity": "high",
+   "port": "25",
+   "service": "smtp",
+   "cve_id": null,
+   "cvss_score": null,
+   "description": "Unauthenticated SMTP service may allow email relay attacks if not properly configured.",
+   "created_at": "2026-10-07T11:11:21.333950+00:00"
+  }
+ ],
+ "tool_results": [
+  {
+   "tool_name": "osint",
+   "exit_code": 0,
+   "duration_ms": 552,
+   "raw_output": "{\n  \"target\": \"192.0.2.10\",\n  \"fields\": {},\n  \"raw\": \"\\n#\\n# ARIN WHOIS data and services are subject to the Terms of Use\\n# available at: https://www.arin.net/resources/registry/whois/tou/\\n#\\n# If you see inaccuracies in the results, please report at\\n# https://www.arin.net/resources/registry/whois/inaccuracy_reporting/\\n#\\n# Copyright 1997-2026, American Registry for Internet Numbers, Ltd.\\n#\\n\\n\\nNetRange:       192.168.0.0 - 192.168.255.255\\nCIDR:           192.168.0.0/16\\nNetName:        PRIVATE-ADDRESS-CBLK-RFC1918-IANA-RESERVED\\nNetHandle:      NET-192-168-0-0-1\\nParent:         NET192 (NET-192-0-0-0-0)\\nNetType:        IANA Special Use\\nOriginAS:       \\nOrganization:   Internet Assigned Numbers Authority (IANA)\\nRegDate:        1994-03-15\\nUpdated:        2024-05-24\\nComment:        These addresses are in use by many millions of independently operated networks, which might be as small as a single computer connected to a home gateway, and are automatically configured in hundreds of millions of devices.  They are only intended for use within a private context  and traffic that needs to cross the Internet will need to use a different, unique address.\\nComment:        \\nComment:        These addresses can be used by anyone without any need to coordinate with IANA or an Internet registry.  The traffic from these addresses does not come from ICANN or IANA.  We are not the source of activity you may see on logs or in e-mail records.  Please refer to http://www.iana.org/abuse/answers\\nComment:        \\nComment:        These addresses were assigned by the IETF, the organization that develops Internet protocols, in the Best Current Practice document, RFC 1918 which can be found at:\\nComment:        http://datatracker.ietf.org/doc/rfc1918\\nRef:            https://rdap.arin.net/registry/ip/192.168.0.0\\n\\n\\n\\nOrgName:        Internet Assigned Numbers Authority\\nOrgId:          IANA\\nAddress:        12025 Waterfront Drive\\nAddress:        Suite 300\\nCity:           Los Angeles\\nStateProv:      CA\\nPostalCode:     90292\\nCountry:        US\\nRegDate:        \\nUpdated:        2024-05-24\\nRef:            https://rdap.arin.net/registry/entity/IANA\\n\\n\\nOrgAbuseHandle: IANA-IP-ARIN\\nOrgAbuseName:   ICANN\\nOrgAbusePhone:  +1-310-301-5820 \\nOrgAbuseEmail:  abuse@iana.org\\nOrgAbuseRef:    https://rdap.arin.net/registry/entity/IANA-IP-ARIN\\n\\nOrgTechHandle: IANA-IP-ARIN\\nOrgTechName:   ICANN\\nOrgTechPhone:  +1-310-301-5820 \\nOrgTechEmail:  abuse@iana.org\\nOrgTechRef:    https://rdap.arin.net/registry/entity/IANA-IP-ARIN\\n\\n\\n#\\n# ARIN WHOIS data and services are subject to the Terms of Use\\n# available at: https://www.arin.net/resources/registry/whois/tou/\\n#\\n# If you see inaccuracies in the results, please report at\\n# https://www.arin.net/resources/registry/whois/inaccuracy_reporting/\\n#\\n# Copyright 1997-2026, American Registry for Internet Numbers, Ltd.\\n#\\n\\n\"\n}"
+  },
+  {
+   "tool_name": "poc_index",
+   "exit_code": 0,
+   "duration_ms": 1138,
+   "raw_output": "{\n  \"query\": \"192.0.2.10\",\n  \"source\": \"No results found\",\n  \"count\": 0,\n  \"exploits\": []\n}"
+  },
+  {
+   "tool_name": "ssl",
+   "exit_code": 0,
+   "duration_ms": 101268,
+   "raw_output": "{\"error\": \"Assessment still in progress: unknown. Try again later.\", \"host\": \"192.0.2.10\"}"
+  },
+  {
+   "tool_name": "nmap",
+   "exit_code": 0,
+   "duration_ms": 184312,
+   "raw_output": "{\n  \"target\": \"192.0.2.10\",\n  \"host_up\": true,\n  \"open_ports\": [\n    {\n      \"port\": 25,\n      \"protocol\": \"tcp\",\n      \"service\": \"smtp\",\n      \"version\": \"SLmail smtpd 5.5.0.4433\"\n    },\n    {\n      \"port\": 135,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 139,\n      \"protocol\": \"tcp\",\n      \"service\": \"netbios-ssn\",\n      \"version\": \"Microsoft Windows netbios-ssn\"\n    },\n    {\n      \"port\": 445,\n      \"protocol\": \"tcp\",\n      \"service\": \"microsoft-ds\",\n      \"version\": \"Windows 8.1 Pro 9600 microsoft-ds (workgroup: WORKGROUP)\"\n    },\n    {\n      \"port\": 554,\n      \"protocol\": \"tcp\",\n      \"service\": \"rtsp?\",\n      \"version\": \"\"\n    },\n    {\n      \"port\": 2869,\n      \"protocol\": \"tcp\",\n      \"service\": \"http\",\n      \"version\": \"Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\"\n    },\n    {\n      \"port\": 5357,\n      \"protocol\": \"tcp\",\n      \"service\": \"http\",\n      \"version\": \"Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\"\n    },\n    {\n      \"port\": 10243,\n      \"protocol\": \"tcp\",\n      \"service\": \"http\",\n      \"version\": \"Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\"\n    },\n    {\n      \"port\": 49152,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 49153,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 49154,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 49155,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 49156,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    },\n    {\n      \"port\": 49167,\n      \"protocol\": \"tcp\",\n      \"service\": \"msrpc\",\n      \"version\": \"Microsoft Windows RPC\"\n    }\n  ],\n  \"os_guess\": null,\n  \"raw\": \"Starting Nmap 7.95 ( https://nmap.org ) at 2026-10-07 11:07 UTC\\nNmap scan report for 192.0.2.10\\nHost is up (0.0015s latency).\\nNot shown: 986 closed tcp ports (reset)\\nPORT      STATE SERVICE      VERSION\\n25/tcp    open  smtp         SLmail smtpd 5.5.0.4433\\n| smtp-commands: HOST1, SIZE 100000000, SEND, SOML, SAML, HELP, VRFY, EXPN, ETRN, XTRN\\n|_ This server supports the following commands. HELO MAIL RCPT DATA RSET SEND SOML SAML HELP NOOP QUIT\\n135/tcp   open  msrpc        Microsoft Windows RPC\\n139/tcp   open  netbios-ssn  Microsoft Windows netbios-ssn\\n445/tcp   open  microsoft-ds Windows 8.1 Pro 9600 microsoft-ds (workgroup: WORKGROUP)\\n554/tcp   open  rtsp?\\n2869/tcp  open  http         Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\\n5357/tcp  open  http         Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\\n|_http-server-header: Microsoft-HTTPAPI/2.0\\n|_http-title: Service Unavailable\\n10243/tcp open  http         Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)\\n|_http-title: Not Found\\n|_http-server-header: Microsoft-HTTPAPI/2.0\\n49152/tcp open  msrpc        Microsoft Windows RPC\\n49153/tcp open  msrpc        Microsoft Windows RPC\\n49154/tcp open  msrpc        Microsoft Windows RPC\\n49155/tcp open  msrpc        Microsoft Windows RPC\\n49156/tcp open  msrpc        Microsoft Windows RPC\\n49167/tcp open  msrpc        Microsoft Windows RPC\\nService Info: Host: HOST1; OS: Windows; CPE: cpe:/o:microsoft:windows\\n\\nHost script results:\\n| smb2-security-mode: \\n|   3:0:2: \\n|_    Message signing enabled but not required\\n|_nbstat: NetBIOS name: HOST1, NetBIOS user: <unknown>, NetBIOS MAC: 00:00:00:00:00:00 (VMware)\\n| smb-os-discovery: \\n|   OS: Windows 8.1 Pro 9600 (Windows 8.1 Pro 6.3)\\n|   OS CPE: cpe:/o:microsoft:windows_8.1::-\\n|   Computer name: HOST1\\n|   NetBIOS computer name: HOST1\\\\x00\\n|   Workgroup: WORKGROUP\\\\x00\\n|_  System time: 2026-10-06T07:47:21-07:00\\n| smb2-time: \\n|   date: 2026-10-06T14:47:20\\n|_  start_date: 2026-10-06T14:20:01\\n|_clock-skew: mean: -18h02m06s, deviation: 4h02m30s, median: -20h22m06s\\n| smb-security-mode: \\n|   account_used: guest\\n|   authentication_level: user\\n|   challenge_response: supported\\n|_  message_signing: disabled (dangerous, but default)\\n\\nService detection performed. Please report any incorrect results at https://nmap.org/submit/ .\\nNmap done: 1 IP address (1 host up) scanned in 184.24 seconds\\n\"\n}"
+  }
+ ],
+ "ai_analyses": [
+  {
+   "risk_level": "CRITICAL",
+   "summary": null,
+   "response": "VULN: Microsoft SMB (SMBv1) | SEVERITY: CRITICAL | PORT: 445 | SERVICE: microsoft-ds  \nDESC: Windows 8.1 Pro 9600 SMB service exposes vulnerabilities like EternalBlue (CVE-2017-0144) and lack of SMBv1 patches.  \nFIX: Disable SMBv1, enable SMBv3, and apply all Microsoft security updates for Windows 8.1.  \n\nVULN: Microsoft RPC (DCOM) | SEVERITY: HIGH | PORT: 135 | SERVICE: msrpc  \nDESC: Unauthenticated RPC endpoints may allow remote code execution via vulnerabilities like CVE-2017-0144.  \nFIX: Restrict RPC access to trusted IPs, disable unused DCOM services, and patch Windows.  \n\nVULN: NetBIOS (SMB) | SEVERITY: HIGH | PORT: 139 | SERVICE: netbios-ssn  \nDESC: NetBIOS over TCP/IP (NBT) can be exploited for session enumeration and SMB relay attacks.  \nFIX: Disable NetBIOS over TCP/IP and restrict SMB traffic to internal networks.  \n\nVULN: Microsoft HTTPAPI (UPnP) | SEVERITY: MEDIUM | PORT: 2869 | SERVICE: http  \nDESC: Exposes UPnP/SSDP services which may allow unauthorized device discovery or configuration changes.  \nFIX: Disable UPnP if not required and restrict access to internal networks.  \n\nVULN: Open SMTP (Relay) | SEVERITY: HIGH | PORT: 25 | SERVICE: smtp  \nDESC: Unauthenticated SMTP service may allow email relay attacks if not properly configured.  \nFIX: Implement SMTP authentication, disable relay, and use TLS for email traffic.  \n\nRISK_LEVEL: CRITICAL  \nSUMMARY: The target runs unpatched Windows 8.1 with multiple vulnerable services (SMB, RPC, SMTP) exposed. SMBv1 and outdated OS pose critical risks for exploitation. Immediate patching and network segmentation are required."
+  }
+ ]
+}

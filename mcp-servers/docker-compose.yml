@@ -1,0 +1,96 @@
+# SOCIS-AI-PT — MCP Servers Docker Compose
+# All 12 Python MCP servers consolidated into a single container (mcp_all)
+# managed by supervisord. Metasploit RPC stays in its own container.
+
+services:
+
+  # ─── Metasploit Framework RPC Server ────────────────────────
+  metasploit_rpc:
+    build:
+      context: .
+      dockerfile: Dockerfile.metasploit
+    image: socis/metasploit-rpc:latest
+    container_name: socis_metasploit_rpc
+    restart: unless-stopped
+    environment:
+      MSF_PASSWORD: ${MSF_PASSWORD:-msf_secure_default_2024}
+      MSF_PORT: ${MSF_PORT:-55553}
+      MSF_SSL: ${MSF_SSL:-true}
+    ports:
+      - "55553:55553"
+    networks: [socis-net]
+    volumes:
+      - metasploit_data:/root/.msf4
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # ─── All MCP Tool Servers (consolidated) ───────────────────
+  # Runs all MCP servers via supervisord:
+  #   cve(8100) nmap(8101) nuclei(8102) osint(8103) metasploit(8104)
+  #   waf(8107) ffuf(8108) sqlmap(8109) ssl(8112)
+  #   cisa_kev(8114) epss(8115) poc(8116) cve_lite(8122)
+  #   anomaly(8123) payload_generator(8124)
+  mcp_all:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: socis/mcp-all:latest
+    container_name: socis_mcp_all
+    restart: unless-stopped
+    depends_on:
+      metasploit_rpc:
+        condition: service_healthy
+    ports:
+      - "8100:8100"
+      - "8101:8101"
+      - "8102:8102"
+      - "8103:8103"
+      - "8104:8104"
+      - "8107:8107"
+      - "8108:8108"
+      - "8109:8109"
+      - "8112:8112"
+      - "8114:8114"
+      - "8115:8115"
+      - "8116:8116"
+      - "8122:8122"
+      - "8123:8123"
+      - "8124:8124"
+    environment:
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      MSF_HOST: ${MSF_HOST:-metasploit_rpc}
+      MSF_PORT: ${MSF_PORT:-55553}
+      MSF_PASSWORD: ${MSF_PASSWORD:-msf_secure_default_2024}
+      MSF_SSL: ${MSF_SSL:-true}
+      PAYLOAD_SAVE_DIR: ${PAYLOAD_SAVE_DIR:-}
+      WORDLIST_DIR: /usr/share/wordlists
+      CVE_LITE_ALLOWED_ROOTS: /projects:/tmp:/workspace:/app/projects:/var/cve-lite
+      OLLAMA_REMOTE_URL: ${OLLAMA_REMOTE_URL:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3}
+      ANOMALY_MODEL_DIR: /var/anomaly_models
+    volumes:
+      - cve_lite_db:/var/cve-lite
+      - projects_data:/projects:ro
+      - anomaly_models:/var/anomaly_models
+    networks: [socis-net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  socis-net:
+    external: true
+    name: docker_socis-net
+
+volumes:
+  metasploit_data:
+  cve_lite_db:
+  projects_data:
+  anomaly_models:

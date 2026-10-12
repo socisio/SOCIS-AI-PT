@@ -1,0 +1,19 @@
+FROM metasploitframework/metasploit-framework:latest
+
+LABEL maintainer="SOCIS-AI-PT DevOps"
+LABEL description="Metasploit RPC Server for MCP Integration"
+
+ENV HOME=/root
+ENV MSF_PASSWORD=${MSF_PASSWORD:-msf_secure_default_2024}
+ENV MSF_PORT=${MSF_PORT:-55553}
+
+# Create startup script that starts msfrpcd and keeps container alive
+RUN printf '#!/bin/bash\necho "[*] Starting Metasploit RPC Server on port $MSF_PORT..."\n./msfrpcd -P "$MSF_PASSWORD" -S -a 0.0.0.0 -p "$MSF_PORT" -n\necho "[*] RPC Server backgrounded, keeping container alive..."\ntail -f /dev/null\n' > /opt/start-msf-rpc.sh && \
+    chmod +x /opt/start-msf-rpc.sh
+
+HEALTHCHECK --interval=30s --timeout=15s --start-period=120s --retries=5 \
+    CMD ps aux | grep -q msfrpcd || exit 1
+
+EXPOSE 55553
+
+ENTRYPOINT ["/opt/start-msf-rpc.sh"]

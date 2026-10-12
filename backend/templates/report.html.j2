@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ brand_name }} — Penetration Test Report</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  @page {
+    size: A4;
+    margin: 14mm 12mm 16mm 12mm;
+    @top-right { content: "Page " counter(page) " / " counter(pages); color: #64748b; font-size: 9px; }
+  }
+
+  :root {
+    /* Dark Theme (default) */
+    --bg-primary: #0a0e17;
+    --bg-secondary: #0f1623;
+    --bg-tertiary: #f8fafc;
+    --border-color: #1e2d45;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-body: #e2e8f0;
+    
+    /* Light Theme */
+    --bg-primary-light: #ffffff;
+    --bg-secondary-light: #f8fafc;
+    --bg-tertiary-light: #0a0e17;
+    --border-color-light: #e2e8f0;
+    --text-primary-light: #0f172a;
+    --text-secondary-light: #64748b;
+    --text-body-light: #334155;
+    
+    /* Colors (theme-independent) */
+    --accent: {{ brand_color }};
+    --critical: #ff3366;
+    --high: #f97316;
+    --medium: #f59e0b;
+    --low: #22c55e;
+    --info: #60a5fa;
+  }
+
+  body.theme-light {
+    --bg-primary: var(--bg-primary-light);
+    --bg-secondary: var(--bg-secondary-light);
+    --bg-tertiary: var(--bg-tertiary-light);
+    --border-color: var(--border-color-light);
+    --text-primary: var(--text-primary-light);
+    --text-secondary: var(--text-secondary-light);
+    --text-body: var(--text-body-light);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  body.theme-light {
+    background: #ffffff;
+    color: #1a2035;
+  }
+
+  /* ─── Cover Page ─────────────────────────────────────────── */
+  .cover {
+    background: linear-gradient(135deg, var(--bg-primary) 0%, #0f1a2e 50%, #0a1525 100%);
+    min-height: 100vh;
+    padding: 60px;
+    display: flex;
+    flex-direction: column;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    break-after: page;
+  }
+
+  body.theme-light .cover {
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #e2e8f0 100%);
+    color: var(--text-primary-light);
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: radial-gradient(circle at 20% 20%, rgba(15,240,252,0.06) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(139,92,246,0.06) 0%, transparent 50%);
+  }
+
+  .cover-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    margin-bottom: 80px; position: relative; z-index: 1; 
+  }
+
+  .cover-logo { 
+    display: flex; align-items: center; gap: 16px; 
+  }
+
+  .cover-logo-image {
+    width: 48px; height: 48px;
+    background: rgba(15,240,252,0.15);
+    border: 2px solid rgba(15,240,252,0.4);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    overflow: hidden;
+  }
+
+  .cover-logo-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .cover-brand { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+  .cover-brand-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+
+  body.theme-light .cover-brand-sub {
+    color: rgba(15, 23, 42, 0.6);
+  }
+
+  .cover-badge {
+    font-size: 11px; padding: 6px 16px; border-radius: 99px; font-weight: 600;
+    background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.4);
+    color: #ef4444; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  .cover-main { 
+    flex: 1; display: flex; flex-direction: column; justify-content: center; 
+    position: relative; z-index: 1; 
+  }
+
+  .cover-type { 
+    font-size: 12px; color: rgba(15,240,252,0.7); 
+    text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 16px; 
+  }
+
+  .cover-title { 
+    font-size: 48px; font-weight: 800; color: white; line-height: 1.15; 
+    letter-spacing: -0.03em; margin-bottom: 12px; 
+  }
+
+  body.theme-light .cover-title {
+    color: var(--text-primary-light);
+  }
+
+  .cover-target { 
+    font-size: 18px; color: rgba(255,255,255,0.5); 
+    font-family: 'JetBrains Mono', monospace; 
+  }
+
+  body.theme-light .cover-target {
+    color: var(--text-secondary-light);
+  }
+
+  .cover-divider { 
+    width: 80px; height: 3px; 
+    background: linear-gradient(90deg, var(--accent), #8b5cf6); 
+    border-radius: 2px; margin: 32px 0; 
+  }
+
+  .cover-meta { 
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; 
+    position: relative; z-index: 1; 
+  }
+
+  .cover-meta-item label { 
+    font-size: 10px; color: rgba(255,255,255,0.35); 
+    text-transform: uppercase; letter-spacing: 0.1em; 
+    display: block; margin-bottom: 4px; 
+  }
+
+  body.theme-light .cover-meta-item label {
+    color: rgba(15, 23, 42, 0.5);
+  }
+
+  .cover-meta-item span { font-size: 14px; font-weight: 600; color: white; }
+
+  body.theme-light .cover-meta-item span {
+    color: var(--text-primary-light);
+  }
+
+  .cover-client {
+    position: relative; z-index: 1;
+    margin-top: 32px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  body.theme-light .cover-client {
+    border-top-color: rgba(15, 23, 42, 0.1);
+  }
+
+  .cover-client-label {
+    font-size: 10px; color: rgba(255,255,255,0.35);
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin-bottom: 12px;
+  }
+
+  body.theme-light .cover-client-label {
+    color: rgba(15, 23, 42, 0.5);
+  }
+
+  .cover-client-header {
+    display: flex; align-items: center; gap: 16px;
+  }
+
+  .cover-client-logo {
+    width: 60px; height: 60px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  body.theme-light .cover-client-logo {
+    background: rgba(15, 23, 42, 0.1);
+  }
+
+  .cover-client-logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .cover-client-name {
+    font-size: 18px; font-weight: 700; color: white;
+  }
+
+  body.theme-light .cover-client-name {
+    color: var(--text-primary-light);
+  }
+
+  .cover-risk {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 12px; border-radius: 6px; font-size: 14px; font-weight: 700;
+  }
+
+  .risk-critical { background: rgba(255,51,102,0.2); border: 1px solid rgba(255,51,102,0.4); color: #ff3366; }
+  .risk-high     { background: rgba(249,115,22,0.2); border: 1px solid rgba(249,115,22,0.4); color: #f97316; }
+  .risk-medium   { background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; }
+  .risk-low      { background: rgba(34,197,94,0.2);  border: 1px solid rgba(34,197,94,0.4);  color: #22c55e; }
+  .risk-incomplete { background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.6); color: #b45309; }
+  .incomplete-banner { border: 1px solid #f59e0b; border-left: 5px solid #f59e0b; background: #fffbeb; color: #78350f; border-radius: 6px; padding: 12px 16px; margin: 0 0 16px; font-size: 13px; line-height: 1.5; }
+  .incomplete-reason { font-family: monospace; font-size: 11px; margin-top: 6px; color: #92400e; word-break: break-word; }
+  .action-list { margin: 6px 0 0 18px; padding: 0; font-size: 13px; line-height: 1.6; }
+  .action-list li { margin: 0 0 10px; }
+  .action-meta { color: var(--text-secondary); font-size: 12px; }
+  .action-fix { margin-top: 3px; color: var(--text-body); }
+  .vuln-desc.remediation { border-left: 3px solid #22c55e; padding-left: 10px; }
+  .vuln-desc.evidence-note { color: var(--text-secondary); font-size: 12px; border-left: 3px solid #64748b; padding-left: 10px; }
+  .recon-note { font-size: 12px; color: var(--text-secondary); border-left: 3px solid #f59e0b; padding: 4px 0 4px 10px; margin: 10px 0 16px; line-height: 1.5; }
+
+  /* ─── Page Layout ─────────────────────────────────────────── */
+  .page { 
+    padding: 28px 34px; max-width: 1100px; margin: 0 auto; 
+    background: var(--bg-primary);
+  }
+
+  body.theme-light .page {
+    background: #ffffff;
+  }
+
+  .page-break {
+    page-break-before: auto;
+    break-before: auto;
+  }
+
+  /* ─── Section Headers ─────────────────────────────────────── */
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 24px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .section-number {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: rgba(15,240,252,0.1);
+    border: 1px solid rgba(15,240,252,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; color: var(--accent);
+  }
+
+  body.theme-light .section-number {
+    background: rgba(15,240,252,0.05);
+    color: var(--accent);
+  }
+
+  .section-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
+
+  h2 { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+  h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 24px 0 10px; }
+  p { color: var(--text-body); margin-bottom: 12px; orphans: 2; widows: 2; }
+
+  /* ─── Executive Summary ───────────────────────────────────── */
+  .exec-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  
+  .exec-stat {
+    background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;
+    padding: 20px; text-align: center;
+  }
+
+  .exec-stat .count { font-size: 36px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .exec-stat .label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; }
+  .count-critical { color: var(--critical); }
+  .count-high     { color: var(--high); }
+  .count-medium   { color: var(--medium); }
+  .count-low      { color: var(--low); }
+
+  /* ─── Risk Gauge ──────────────────────────────────────────── */
+  .risk-gauge {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 20px;
+  }
+
+  .risk-gauge .score { font-size: 48px; font-weight: 800; }
+  .risk-bar { flex: 1; margin: 0 32px; }
+  .risk-bar-track { height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
+  .risk-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--low), var(--medium), var(--high), var(--critical)); }
+
+  /* ─── Findings Table ──────────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 12.5px; }
+  
+  thead tr { background: var(--bg-secondary); color: var(--text-primary); }
+  thead th { padding: 10px 14px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 600; }
+  tbody tr { border-bottom: 1px solid var(--border-color); }
+  tbody tr:hover { background: var(--bg-secondary); }
+  tbody td { padding: 10px 14px; color: var(--text-body); vertical-align: top; }
+
+  /* ─── Severity Badges ─────────────────────────────────────── */
+  .sev {
+    display: inline-block; padding: 2px 8px; border-radius: 99px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .sev-critical { background: rgba(255,51,102,0.15); color: var(--critical); border: 1px solid rgba(255,51,102,0.3); }
+  .sev-high     { background: rgba(249,115,22,0.15); color: var(--high); border: 1px solid rgba(249,115,22,0.3); }
+  .sev-medium   { background: rgba(245,158,11,0.15); color: var(--medium); border: 1px solid rgba(245,158,11,0.3); }
+  .sev-low      { background: rgba(34,197,94,0.15); color: var(--low); border: 1px solid rgba(34,197,94,0.3); }
+  .sev-info     { background: rgba(96,165,250,0.15); color: var(--info); border: 1px solid rgba(96,165,250,0.3); }
+
+  /* ─── Vuln Detail Cards ───────────────────────────────────── */
+  .vuln-card {
+    border: 1px solid var(--border-color); border-radius: 12px;
+    margin-bottom: 20px; overflow: hidden;
+    border-left: 4px solid var(--border-color);
+    page-break-inside: auto;
+    break-inside: auto;
+    background: var(--bg-secondary);
+  }
+
+  .vuln-card.critical { border-left-color: var(--critical); }
+  .vuln-card.high     { border-left-color: var(--high); }
+  .vuln-card.medium   { border-left-color: var(--medium); }
+  .vuln-card.low      { border-left-color: var(--low); }
+
+  .vuln-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 16px 20px; background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border-color);
+  }
+
+  .vuln-name { font-weight: 700; font-size: 14px; color: var(--text-primary); }
+  .vuln-meta { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+  .vuln-body { padding: 16px 20px; }
+  .vuln-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin: 12px 0 6px; }
+  .vuln-desc { font-size: 13px; color: var(--text-body); line-height: 1.65; }
+  
+  .cvss-box {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 4px 12px; border-radius: 8px; background: rgba(255,255,255,0.05);
+    font-size: 13px; font-weight: 600; margin-left: 16px;
+  }
+  .cvss-score { font-size: 20px; font-weight: 800; }
+
+  /* ─── Code / Terminal ─────────────────────────────────────── */
+  pre, code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    background: rgba(0,0,0,0.3);
+    color: var(--accent);
+    border-radius: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 8px 0;
+  }
+
+  /* ─── AI Analysis ─────────────────────────────────────────── */
+  .ai-section {
+    background: rgba(15,240,252,0.05);
+    border: 1px solid rgba(15,240,252,0.2); border-radius: 12px;
+    padding: 24px; margin-bottom: 24px;
+  }
+
+  body.theme-light .ai-section {
+    background: rgba(15,240,252,0.03);
+    border-color: rgba(15,240,252,0.15);
+  }
+
+  .ai-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ai-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 99px;
+    background: rgba(15,240,252,0.2); color: var(--accent); border: 1px solid rgba(15,240,252,0.3);
+    text-transform: uppercase; letter-spacing: 0.07em;
+  }
+  .ai-content { font-size: 13px; color: var(--text-body); line-height: 1.7; white-space: pre-wrap; }
+
+  /* ─── Tool Output ─────────────────────────────────────────── */
+  .tool-block {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .tool-header {
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .tool-meta {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .tool-output {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text-body);
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    overflow-x: visible;
+  }
+
+  .presenter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .presenter-stat {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .presenter-stat .k {
+    font-size: 10px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .presenter-stat .v {
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-word;
+  }
+
+  .presenter-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .presenter-badge.good {
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+    border: 1px solid rgba(34,197,94,0.3);
+  }
+
+  .presenter-badge.bad {
+    background: rgba(239,68,68,0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239,68,68,0.3);
+  }
+
+  .tool-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin: 8px 0 10px;
+  }
+
+  .tool-table th, .tool-table td {
+    border: 1px solid var(--border-color);
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .tool-table th {
+    background: rgba(255,255,255,0.03);
+    color: var(--text-secondary);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .presenter-list {
+    margin: 6px 0 10px 18px;
+    color: var(--text-body);
+  }
+
+  .presenter-list li {
+    margin-bottom: 4px;
+  }
+
+  /* ─── Footer ──────────────────────────────────────────────── */
+  .footer {
+    border-top: 1px solid var(--border-color); margin-top: 20px; padding-top: 10px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 11px; color: var(--text-secondary);
+  }
+
+  /* ─── ToC ─────────────────────────────────────────────────── */
+  .toc-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px dotted var(--border-color); 
+    font-size: 13px; color: var(--text-body);
+  }
+
+  .toc-item .toc-num { color: var(--text-secondary); font-size: 11px; }
+
+  @media print {
+    body { font-size: 12px; }
+    .cover { min-height: auto; }
+    .page { max-width: none; margin: 0; padding: 10mm 6mm; }
+    .page-break { page-break-before: auto; break-before: auto; }
+    .section-header { break-after: avoid; }
+    .tool-block, .vuln-card, .ai-section { page-break-inside: auto; break-inside: auto; }
+    .tool-output, .ai-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      overflow: visible;
+    }
+  }
+</style>
+</head>
+<body class="theme-{{ report_theme }}">
+
+<!-- ═══════════════ COVER PAGE ═══════════════ -->
+<div class="cover">
+  <div class="cover-header">
+    <div class="cover-logo">
+      {% if brand_logo_url %}
+      <div class="cover-logo-image"><img src="{{ brand_logo_url }}" alt="Platform Logo" /></div>
+      {% else %}
+      <div class="cover-logo-image">S</div>
+      {% endif %}
+      <div>
+        <div class="cover-brand">{{ brand_name }}</div>
+        <div class="cover-brand-sub">{{ brand_tagline }}</div>
+      </div>
+    </div>
+    <div class="cover-badge">{{ report_classification }}</div>
+  </div>
+
+  <div class="cover-main">
+    <div class="cover-type">Security Assessment Report</div>
+    <div class="cover-title">Penetration Test<br/>Findings &amp; Analysis</div>
+    <div class="cover-target">{{ scan.target }}</div>
+    <div class="cover-divider"></div>
+
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <label>Report Date</label>
+        <span>{{ generated_at }}</span>
+      </div>
+      <div class="cover-meta-item">
+        <label>Scan Type</label>
+        <span>{{ scan_type_label }}</span>
+      </div>
+      <div class="cover-meta-item">
+        <label>Risk Level</label>
+        <span class="cover-risk risk-{{ cover_risk_class }}">
+          {{ cover_risk }}
+        </span>
+      </div>
+      <div class="cover-meta-item">
+        <label>Findings</label>
+        <span>{{ vulnerabilities|length }} vulnerabilities{% if scan_incomplete %} (assessment incomplete){% endif %}</span>
+      </div>
+    </div>
+  </div>
+
+  {% if customer_name %}
+  <div class="cover-client">
+    <div class="cover-client-label">Assessment Conducted For</div>
+    <div class="cover-client-header">
+      {% if customer_logo_url %}
+      <div class="cover-client-logo"><img src="{{ customer_logo_url }}" alt="Client Logo" /></div>
+      {% endif %}
+      <div class="cover-client-name">{{ customer_name }}</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- ═══════════════ PAGE 2: EXECUTIVE SUMMARY ═══════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <div class="section-title">Executive Summary</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="exec-grid">
+    <div class="exec-stat">
+      <div class="count count-critical">{{ vuln_counts.critical }}</div>
+      <div class="label">Critical</div>
+    </div>
+    <div class="exec-stat">
+      <div class="count count-high">{{ vuln_counts.high }}</div>
+      <div class="label">High</div>
+    </div>
+    <div class="exec-stat">
+      <div class="count count-medium">{{ vuln_counts.medium }}</div>
+      <div class="label">Medium</div>
+    </div>
+    <div class="exec-stat">
+      <div class="count count-low">{{ vuln_counts.low }}</div>
+      <div class="label">Low</div>
+    </div>
+  </div>
+
+  <!-- Risk Bar -->
+  {% if scan.risk_level %}
+  <div class="risk-gauge">
+    <div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Overall Risk Level</div>
+      <div class="score" style="color: {{ risk_color }};">{{ risk_level_label }}</div>
+    </div>
+    <div class="risk-bar">
+      <div style="font-size:10px;color:var(--text-secondary);display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span>LOW</span><span>MEDIUM</span><span>HIGH</span><span>CRITICAL</span>
+      </div>
+      <div class="risk-bar-track">
+        <div class="risk-bar-fill" style="width: {{ risk_pct }}%;"></div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:var(--text-secondary);">Scan Duration</div>
+      <div style="font-size:16px;font-weight:700;">{{ duration }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Scope & Context -->
+  {% if scan_incomplete %}
+  <div class="incomplete-banner">
+    <strong>{% if all_tools_failed %}This assessment did not run.{% else %}This assessment is incomplete.{% endif %}</strong>
+    {{ tools_failed }} of {{ tools_total }} tool(s) did not complete, so an empty findings list here is <strong>not</strong> evidence that the target is secure.
+    {% for r in failure_reasons %}<div class="incomplete-reason">{{ r }}</div>{% endfor %}
+  </div>
+  {% endif %}
+<h3>Assessment Scope</h3>
+  <p>This penetration test was conducted against <strong>{{ scan.target }}</strong> using automated tools and AI-assisted analysis. The assessment covered {{ scan_type_label }} methodology as configured by the security team.</p>
+  {% if recon_note %}<p class="recon-note">{{ recon_note }}</p>{% endif %}
+  {% if skipped_reasons %}<p class="recon-note">Not applicable to this target, so skipped: {{ skipped_reasons|join('; ') }}</p>{% endif %}
+  {% if coverage_note %}<p class="recon-note" style="border-left-color:#ef4444;">{{ coverage_note }}</p>{% endif %}
+
+  {% if ai_summary %}
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-badge">AI Analysis</div>
+      <span style="font-size:12px;color:var(--text-secondary);font-weight:600;">Generated by SOCIS-AI-PT</span>
+    </div>
+    <div class="ai-content">{{ ai_summary }}</div>
+  </div>
+  {% endif %}
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>{{ scan.target }} | {{ generated_at }}</span>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE 3: FINDINGS SUMMARY ═══════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">2</div>
+    <div class="section-title">Vulnerability Summary</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Vulnerability</th>
+        <th>Severity</th>
+        <th>Port / Service</th>
+        <th>CVE</th>
+        <th>CVSS</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for vuln in vulnerabilities %}
+      <tr>
+        <td style="color:var(--text-secondary);font-size:11px;">{{ loop.index }}</td>
+        <td style="font-weight:500;color:var(--text-primary);">{{ vuln.vuln_name }}</td>
+        <td><span class="sev sev-{{ vuln.severity_key }}">{{ vuln.severity_label }}</span></td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">
+          {{ vuln.port or '—' }}{% if vuln.service %} / {{ vuln.service }}{% endif %}
+        </td>
+        <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);">{{ vuln.cve_id or '—' }}</td>
+        <td style="font-weight:700;">{{ vuln.cvss_score or '—' }}</td>
+      </tr>
+      {% endfor %}
+      {% if not vulnerabilities %}
+      <tr><td colspan="6" style="text-align:center;color:var(--text-secondary);padding:24px;">{% if scan_incomplete %}Not a clean result: {{ tools_failed }} of {{ tools_total }} tool(s) did not complete, so this target may not have been assessed. See Tool Output.{% else %}No vulnerabilities identified.{% endif %}</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>Page 3 | {{ generated_at }}</span>
+  </div>
+</div>
+
+<!-- ═══════════════ PAGE 4+: DETAILED FINDINGS ═══════════════ -->
+{% if vulnerabilities %}
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">3</div>
+    <div class="section-title">Detailed Findings</div>
+  </div>
+
+  {% for vuln in vulnerabilities %}
+  <div class="vuln-card {{ vuln.severity_key }}">
+    <div class="vuln-header">
+      <div>
+        <div class="vuln-name">{{ loop.index }}. {{ vuln.vuln_name }}</div>
+        <div class="vuln-meta">
+          {% if vuln.port %}Port {{ vuln.port }}{% endif %}
+          {% if vuln.service %} · {{ vuln.service }}{% endif %}
+          {% if vuln.cve_id %} · {{ vuln.cve_id }}{% endif %}
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <span class="sev sev-{{ vuln.severity_key }}">{{ vuln.severity_label }}</span>
+        {% if vuln.cvss_score %}
+        <div class="cvss-box">
+          <span style="font-size:11px;color:var(--text-secondary);">CVSS</span>
+          <span class="cvss-score" style="color:{% if vuln.severity_key == 'critical' %}var(--critical){% elif vuln.severity_key == 'high' %}var(--high){% elif vuln.severity_key == 'medium' %}var(--medium){% else %}var(--low){% endif %};">{{ vuln.cvss_score }}</span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    <div class="vuln-body">
+      {% if vuln.description %}
+      <div class="vuln-section-label">Description</div>
+      <div class="vuln-desc">{{ vuln.description }}</div>
+      {% endif %}
+      {% if vuln.remediation %}
+      <div class="vuln-section-label" style="margin-top:12px;">Remediation</div>
+      <div class="vuln-desc remediation">{{ vuln.remediation }}</div>
+      {% endif %}
+      {% if vuln.evidence_text %}
+      <div class="vuln-section-label" style="margin-top:12px;">Evidence</div>
+      <div class="vuln-desc evidence-note">{{ vuln.evidence_text }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>Detailed Findings | {{ generated_at }}</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════ PAGE: TOOL OUTPUT ═══════════════ -->
+{% if tool_results %}
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">4</div>
+    <div class="section-title">Tool Output</div>
+  </div>
+
+  {% for result in tool_results %}
+  <div class="tool-block">
+    <div class="tool-header">{{ result.tool_name }}</div>
+    <div class="tool-meta">
+      {% if result.duration_ms %}Duration: {{ result.duration_ms }}ms · {% endif %}
+      {% if result.failed %}<strong style="color:#b91c1c;">FAILED</strong>{% if result.failure_reason %} · {{ result.failure_reason }}{% endif %}{% elif result.skipped %}<strong style="color:#92400e;">SKIPPED</strong>{% if result.skip_reason %} · {{ result.skip_reason }}{% endif %}{% else %}Exit code: {{ result.exit_code or 0 }}{% endif %}
+    </div>
+    <div class="tool-meta" style="margin-top:-6px;margin-bottom:10px;">{{ result.summary or 'No summary available' }}</div>
+
+    {% if result.presenter_data %}
+    {% if result.presenter_data.badge %}
+    <div class="presenter-badge {{ result.presenter_data.badge.variant or 'good' }}">{{ result.presenter_data.badge.text }}</div>
+    {% endif %}
+
+    {% if result.presenter_data.cards %}
+    <div class="presenter-grid">
+      {% for card in result.presenter_data.cards %}
+      <div class="presenter-stat"><div class="k">{{ card.k }}</div><div class="v">{{ card.v }}</div></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if result.presenter_data.table and result.presenter_data.table.columns and result.presenter_data.table.rows %}
+    <table class="tool-table">
+      <thead>
+        <tr>
+          {% for col in result.presenter_data.table.columns %}
+          <th>{{ col }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in result.presenter_data.table.rows %}
+        <tr>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if result.presenter_data['items'] %}
+    <ul class="presenter-list">
+      {% for item in result.presenter_data['items'] %}
+      <li>{{ item }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% endif %}
+
+    {% if not result.presenter_data %}
+    <div class="tool-output">{{ result.formatted_output or 'No output' }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>Tool Output | {{ generated_at }}</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════ PAGE: AI ANALYSIS ═══════════════ -->
+{% if ai_analyses %}
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">5</div>
+    <div class="section-title">AI Analysis &amp; Recommendations</div>
+  </div>
+
+  {% for rep in ai_reports %}
+  <div class="ai-section">
+    <div class="ai-header">
+      <div class="ai-badge">AI Analysis</div>
+      {% if rep.risk_level %}
+      <span class="sev sev-{{ rep.risk_level|lower|replace('_', '-') }}">Risk: {{ rep.risk_level }}</span>
+      {% endif %}
+    </div>
+    {% if rep.parsed %}
+      {% if rep.summary %}
+      <div class="vuln-section-label">Summary</div>
+      <div class="ai-content">{{ rep.summary }}</div>
+      {% endif %}
+      {% if rep.findings %}
+      <div class="vuln-section-label" style="margin-top:14px;">Recommended actions, most severe first</div>
+      <ol class="action-list">
+        {% for f in rep.findings %}
+        <li>
+          <span class="sev sev-{{ f.severity_key }}">{{ f.severity or f.severity_key|upper }}</span>
+          <strong>{{ f.name }}</strong>{% if f.port %} <span class="action-meta">· port {{ f.port }}{% if f.service %} / {{ f.service }}{% endif %}</span>{% endif %}
+          {% if f.fix %}<div class="action-fix">{{ f.fix }}</div>{% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% endif %}
+    {% else %}
+    <div class="ai-content">{{ rep.raw }}</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>AI Analysis | {{ generated_at }}</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- ═══════════════ PAGE: DISCLAIMER ═══════════════ -->
+<div class="page page-break">
+  <div class="section-header">
+    <div class="section-number">6</div>
+    <div class="section-title">Disclaimer &amp; Legal Notice</div>
+  </div>
+
+  <p>This report was prepared by <strong>{{ brand_name }}</strong> and contains confidential information regarding the security assessment of <strong>{{ scan.target }}</strong>. This report is intended solely for the individual or organization to which it is addressed.</p>
+
+  <p>The security assessment was performed using automated tools and AI-assisted analysis. All testing was authorized by the appropriate parties. Unauthorized access to computer systems is illegal.</p>
+
+  <p>The findings and recommendations contained in this report reflect the security posture of the assessed systems at the time of the assessment. The security landscape evolves rapidly, and new vulnerabilities may emerge after the assessment date.</p>
+
+  <p><strong>Report Generated:</strong> {{ generated_at }}<br/>
+  <strong>Platform:</strong> {{ brand_name }} (SOCIS-AI-PT)<br/>
+  <strong>Classification:</strong> {{ report_classification }}</p>
+
+  <div class="footer">
+    <span>{{ brand_name }} — {{ report_classification }} Security Report</span>
+    <span>Generated {{ generated_at }}</span>
+  </div>
+</div>
+
+</body>
+</html>

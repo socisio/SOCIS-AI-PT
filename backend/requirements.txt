@@ -1,0 +1,87 @@
+# SOCIS-AI-PT Backend Dependencies
+# Security-updated per pip-audit (H-6 re-audit). Versions moved to patched
+# releases in compatible clusters. See SECURITY_FIXES.md for the audit mapping.
+# REBUILD then re-run: bash deploy/scripts/security-audit.sh + pip-audit.
+
+# ─── Core Framework (ASGI cluster — move together) ───
+# fastapi 0.128.x allows starlette >=0.49.1 (CVE-2025-62727 fix) and needs
+# pydantic >=2.7. starlette pinned to force the fixed version through fastapi.
+fastapi==0.136.1
+starlette==1.3.1
+uvicorn[standard]==0.34.0
+pydantic==2.11.9
+pydantic-settings==2.7.1
+email-validator==2.2.0
+
+# ─── Database ────────────────────────────────────────
+sqlalchemy[asyncio]==2.0.37
+asyncpg==0.30.0
+alembic==1.14.1
+greenlet==3.1.1
+
+# ─── Authentication ──────────────────────────────────
+# Migrated from python-jose to PyJWT (modern, maintained; python-jose had an
+# unpatched critical CVE and pulled vulnerable pyasn1/ecdsa transitives).
+pyjwt==2.15.0
+passlib[argon2]==1.7.4
+python-multipart==0.0.31
+
+# ─── HTTP Client ─────────────────────────────────────
+httpx==0.28.1
+aiohttp==3.14.3
+
+# ─── Redis / Task Queue ─────────────────────────────
+redis==5.2.1
+arq==0.26.1
+
+# ─── Search & Web ────────────────────────────────────
+duckduckgo_search==8.1.1
+beautifulsoup4==4.14.3
+lxml==6.1.0
+
+# ─── Report Generation ──────────────────────────────
+weasyprint==70.0
+jinja2==3.1.6
+
+# ─── MCP Client ─────────────────────────────────────
+# HIGH-RISK BUMP: 1.3.0 -> 1.14.1 is a large jump; mcp drives all tool
+# execution. Chose 1.14.1 (clears PYSEC-2026-1616/1617/1618) over the newest
+# 1.28.x to reduce API-break risk. TEST tool execution after rebuild; if the
+# client API changed, pin back and we reconcile.
+mcp==1.28.1
+
+# ─── Storage ─────────────────────────────────────────
+minio==7.2.14
+
+# ─── Utilities ───────────────────────────────────────
+python-dotenv==1.2.2
+rich==14.3.3
+pillow==12.3.0
+orjson==3.11.6
+validators==0.35.0
+
+# ─── OAuth ───────────────────────────────────────────
+authlib==1.6.12
+itsdangerous==2.2.0
+
+# ─── Security Enhancements ───────────────────────────
+slowapi==0.1.9
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+# cryptography 46.0.6 clears the code-level CVEs (PYSEC-2026-35; name-constraint
+# MITM CVE-2026-34073). PYSEC-2026-3552/3553 concern the bundled OpenSSL and are
+# only fully cleared at 49/50; 46.0.6 is the pragmatic, widely-compatible floor.
+cryptography==50.0.0
+
+# ─── Scheduling ──────────────────────────────────────
+croniter==3.0.3
+
+# ─── Reports ─────────────────────────────────────────
+python-docx==1.1.2
+
+# ─── Vector Search (RAG) ─────────────────────────────
+pgvector==0.3.5
+prometheus-client==0.21.0
+
+# (pyasn1 / ecdsa are no longer dependencies — they were pulled in by
+# python-jose, which has been replaced by PyJWT.)

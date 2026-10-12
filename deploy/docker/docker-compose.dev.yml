@@ -1,0 +1,630 @@
+# SOCIS-AI-PT — Development Compose (GPU-enabled)
+# ─────────────────────────────────────────────────────────────────────────────
+# Default development setup — source-built images, hot-reload frontend,
+# NVIDIA GPU passthrough to Ollama.
+#
+# CPU-only dev: remove or comment the `deploy` block under `ollama`.
+#
+# Quick start:
+#   docker compose up -d
+#
+# Rebuild after code changes:
+#   bash deploy/scripts/install.sh --dev --rebuild
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ─── PostgreSQL 16 ────────────────────────────────────────────────────────
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: socis_postgres
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # perf #2/#5: raise max_connections (default 100 is too low for multi-worker
+    # pools) and apply basic server tuning. Adjust shared_buffers/effective_cache
+    # _size to ~25% / ~60% of the container memory limit.
+    command:
+      - "postgres"
+      - "-c"
+      - "max_connections=${POSTGRES_MAX_CONNECTIONS:-200}"
+      - "-c"
+      - "shared_buffers=${POSTGRES_SHARED_BUFFERS:-512MB}"
+      - "-c"
+      - "effective_cache_size=${POSTGRES_EFFECTIVE_CACHE:-1536MB}"
+      - "-c"
+      - "work_mem=${POSTGRES_WORK_MEM:-16MB}"
+      - "-c"
+      - "maintenance_work_mem=128MB"
+    environment:
+      POSTGRES_DB: socis_ai_pt
+      POSTGRES_USER: socis_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-socis_secure_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U socis_admin -d socis_ai_pt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${POSTGRES_CPUS:-2}"
+          memory: ${POSTGRES_MEM:-2g}
+    networks: [socis-net]
+
+  # ─── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: socis_redis
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    # Perf #4: this Redis holds the DURABLE arq job queue AND security tokens
+    # (JWT blocklist, password-reset tokens, login-lockout counters). With
+    # allkeys-lru, memory pressure could evict queued jobs or revoked tokens —
+    # losing scans and silently un-revoking tokens. Use `noeviction` so writes
+    # fail loudly instead, and raise the cap. Cacheable data lives in a separate
+    # logical DB (see REDIS_CACHE_URL) with its own LRU policy at the app layer.
+    command: redis-server --requirepass ${REDIS_PASSWORD:-socis_redis_pass} --maxmemory ${REDIS_MAXMEMORY:-1gb} --maxmemory-policy noeviction --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -u redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/0 ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${REDIS_CPUS:-1}"
+          memory: ${REDIS_MEM:-768m}
+    networks: [socis-net]
+
+  # ─── MinIO Object Storage ─────────────────────────────────────────────────
+  minio:
+    # MinIO Inc. stopped publishing free community Docker images in Oct 2025
+    # (docker pull minio/minio -> "pull access denied") and archived the repo
+    # in Feb 2026. Default is now pgsty/minio — the actively-maintained AGPLv3
+    # community fork: same env vars, same `server` command, same /data on-disk
+    # format (existing volumes keep working), and it restores the full web
+    # console that upstream removed. Override with MINIO_IMAGE in .env, e.g.:
+    #   pgsty/minio:RELEASE.2026-08-04T00-00-00Z     (maintained fork, default)
+    #   cgr.dev/chainguard/minio:latest              (CVE-free, but NO console)
+    #   quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z  (frozen, unpatched)
+    image: ${MINIO_IMAGE:-pgsty/minio:RELEASE.2026-08-04T00-00-00Z}
+    container_name: socis_minio
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-socis-minio}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-socis-minio-secret}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:9001:9001"   # MinIO web console (loopback only — fix M-2)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${MINIO_CPUS:-1}"
+          memory: ${MINIO_MEM:-1g}
+    networks: [socis-net]
+
+  # ─── LLM providers ────────────────────────────────────────────────────────
+  # The bundled local Ollama container has been REMOVED. The platform now uses
+  # an EXTERNAL Ollama server (set OLLAMA_REMOTE_URL / OLLAMA_REMOTE_MODEL in
+  # .env) as the default, plus the hosted API providers (OpenAI, Anthropic,
+  # OpenRouter, Grok, Mistral). This removes the single-GPU serial-generation
+  # bottleneck and the GPU/driver requirement from the stack itself.
+  # To self-host Ollama, run it on its own host/GPU box and point
+  # OLLAMA_REMOTE_URL at it (see deploy/scripts/setup-models.sh to build the
+  # custom socis-* models on that server).
+
+  # ─── Backend API (FastAPI) ────────────────────────────────────────────────
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: socis_backend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"   # Backend (loopback — nginx proxies, fix M-2)
+    environment:
+      DATABASE_URL: postgresql+asyncpg://socis_admin:${DB_PASSWORD:-socis_secure_pass}@postgres:5432/socis_ai_pt
+      REDIS_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/0
+      # Evictable cache DB (perf #6), separate from the queue/token DB 0.
+      REDIS_CACHE_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/1
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-change-in-production}
+      # External Ollama server is the default LLM (no bundled container).
+      OLLAMA_REMOTE_URL: ${OLLAMA_REMOTE_URL:-}
+      OLLAMA_REMOTE_MODEL: ${OLLAMA_REMOTE_MODEL:-socis-pentest}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-socis-minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-socis-minio-secret}
+      MINIO_BUCKET: socis-reports
+      REPORT_RETENTION_DAYS: ${REPORT_RETENTION_DAYS:-90}
+      # Security-critical settings are now driven by .env (fix C-4) so a
+      # production .env is honored instead of being overridden to insecure
+      # dev values. Defaults remain dev-friendly for local use.
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-development}
+      # Number of uvicorn async workers (2 is safe for dev; scale up for prod)
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-2}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      DOMAIN: ${DOMAIN:-}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-}
+      DEBUG: ${DEBUG:-false}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      # Registration & agent-safety policy (fix H-3 / H-4 / L-8)
+      ALLOW_OPEN_REGISTRATION: ${ALLOW_OPEN_REGISTRATION:-false}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-viewer}
+      SOCIS_AGENT_ALLOW_OFFENSIVE: ${SOCIS_AGENT_ALLOW_OFFENSIVE:-false}
+      MCP_ALLOW_STDIO_SERVERS: ${MCP_ALLOW_STDIO_SERVERS:-false}
+      MAX_CONCURRENT_CHAT_SESSIONS: ${MAX_CONCURRENT_CHAT_SESSIONS:-20}
+      # true = Secure cookies over HTTPS. Must be true in production.
+      SECURE_COOKIES: ${SECURE_COOKIES:-false}
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      # OAuth (optional)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID:-}
+      MICROSOFT_CLIENT_SECRET: ${MICROSOFT_CLIENT_SECRET:-}
+      MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID:-}
+      # External LLM APIs (optional)
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      PLUGINS_DIR: /app/plugins
+    volumes:
+      - reports_data:/app/reports
+      - projects_data:/projects
+      - plugins_data:/app/plugins
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${BACKEND_CPUS:-2}"
+          memory: ${BACKEND_MEM:-2g}
+    networks: [socis-net]
+
+  # ─── ARQ Worker (Background Scan Tasks) ──────────────────────────────────
+  worker:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: socis_worker
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["python", "-m", "arq", "app.tasks.scan_worker.WorkerSettings"]
+    environment: &worker_env
+      DATABASE_URL: postgresql+asyncpg://socis_admin:${DB_PASSWORD:-socis_secure_pass}@postgres:5432/socis_ai_pt
+      REDIS_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/0
+      # Per-worker job concurrency + per-scan timeout (perf #5).
+      ARQ_MAX_JOBS: ${ARQ_MAX_JOBS:-10}
+      ARQ_JOB_TIMEOUT: ${ARQ_JOB_TIMEOUT:-3600}
+      # Evictable cache DB (perf #6), separate from the queue/token DB 0.
+      REDIS_CACHE_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/1
+      # External Ollama server is the default LLM (no bundled container).
+      OLLAMA_REMOTE_URL: ${OLLAMA_REMOTE_URL:-}
+      OLLAMA_REMOTE_MODEL: ${OLLAMA_REMOTE_MODEL:-socis-pentest}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-jwt-change-in-production}
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-socis-minio}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-socis-minio-secret}
+      MINIO_BUCKET: socis-reports
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      # Must match the backend so config guards + secret decryption behave
+      # consistently (fix C-4 / M-5).
+      DEPLOYMENT_MODE: ${DEPLOYMENT_MODE:-development}
+      DEBUG: ${DEBUG:-false}
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      SECURE_COOKIES: ${SECURE_COOKIES:-false}
+      SOCIS_AGENT_ALLOW_OFFENSIVE: ${SOCIS_AGENT_ALLOW_OFFENSIVE:-false}
+      MCP_ALLOW_PRIVATE_TARGETS: ${MCP_ALLOW_PRIVATE_TARGETS:-false}
+      MCP_ALLOWED_PRIVATE_NETS: ${MCP_ALLOWED_PRIVATE_NETS:-}
+      PLUGINS_DIR: /app/plugins
+    volumes:
+      - reports_data:/app/reports
+      - projects_data:/projects
+      - plugins_data:/app/plugins
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${WORKER_CPUS:-2}"
+          memory: ${WORKER_MEM:-2g}
+    networks: [socis-net]
+
+  # ─── Scalable worker pool (perf #5) — OPT-IN ──────────────────────────────
+  # Additional scan-processing capacity. Runs the SAME job queue but NO cron
+  # (cron stays on the primary `worker` so scheduled scans fire once). Disabled
+  # by default via the "scale" profile. Enable with:
+  #   docker compose --profile scale up -d --scale worker-scale=3
+  # Effective scan concurrency = ARQ_MAX_JOBS × (1 + worker-scale replicas).
+  worker-scale:
+    profiles: ["scale"]
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["python", "-m", "arq", "app.tasks.scan_worker.WorkerSettingsNoCron"]
+    environment: *worker_env
+    volumes:
+      - reports_data:/app/reports
+      - projects_data:/projects
+      - plugins_data:/app/plugins
+    deploy:
+      resources:
+        limits:
+          cpus: "${WORKER_CPUS:-2}"
+          memory: ${WORKER_MEM:-2g}
+    networks: [socis-net]
+
+  # ─── Frontend (Next.js — hot-reload dev server) ───────────────────────────
+  frontend:
+    build:
+      context: ../../frontend
+      dockerfile: Dockerfile
+      # dev = `next dev` (compiles each page on first visit: slow to navigate, instant rebuilds);
+      # runner = pre-built production server (fast navigation, rebuild after code changes). Switch: deploy/scripts/frontend-mode.sh
+      target: ${FRONTEND_TARGET:-dev}
+      args:
+        # Empty string → JS uses relative /api/... URLs; nginx proxies them to backend.
+        NEXT_PUBLIC_API_URL: ""
+        NEXT_API_PROXY_URL: "http://backend:8000"
+        # false (default): type errors do not block the production build. true: enforce them.
+        NEXT_STRICT_BUILD: ${NEXT_STRICT_BUILD:-false}
+    container_name: socis_frontend
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [backend]
+    ports:
+      - "127.0.0.1:3000:3000"   # Frontend (loopback — nginx proxies, fix M-2)
+    environment:
+      NEXT_API_PROXY_URL: http://backend:8000
+      # NODE_ENV is NOT set here on purpose: the image sets it (development in the dev stage, production in the runner stage).
+      # Cap Node's heap below the container limit, otherwise a big compile outgrows the container and gets OOM-killed
+      # (the container then restarts and every page is compiled from scratch again). Raise it if you raise FRONTEND_MEM.
+      NODE_OPTIONS: --max-old-space-size=${FRONTEND_HEAP_MB:-1536}
+      NEXT_STRICT_MODE: ${NEXT_STRICT_MODE:-false}
+    volumes:
+      # Hot-reload: source directories are mounted so the Next.js dev server
+      # picks up file changes without rebuilding the image.
+      - ../../frontend/src:/app/src:ro
+      - ../../frontend/public:/app/public:ro
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${FRONTEND_CPUS:-2}"
+          memory: ${FRONTEND_MEM:-2g}
+    networks: [socis-net]
+
+  # ─── Nginx Reverse Proxy ──────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: socis_nginx
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [backend, frontend]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../nginx/ssl:/etc/nginx/ssl:ro
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${NGINX_CPUS:-1}"
+          memory: ${NGINX_MEM:-256m}
+    networks: [socis-net]
+
+  # ─── Metasploit RPC Daemon ────────────────────────────────────────────────
+  # Required by the Metasploit MCP server inside mcp_all.
+  # See: mcp-servers/METASPLOIT_SETUP.md
+  metasploit_rpc:
+    build:
+      context: ../../mcp-servers
+      dockerfile: Dockerfile.metasploit
+    container_name: socis_metasploit_rpc
+    restart: unless-stopped
+    environment:
+      # No insecure default (fix L-5). MSF_PASSWORD must be set in .env;
+      # compose will error with a clear message if it is missing.
+      MSF_PASSWORD: ${MSF_PASSWORD:?MSF_PASSWORD must be set in .env (openssl rand -hex 24)}
+      MSF_PORT: ${MSF_PORT:-55553}
+      MSF_SSL: ${MSF_SSL:-false}
+    ports:
+      # RPC control port — consumed ONLY by the Metasploit MCP server inside
+      # the Docker network. Bound to loopback so it is never exposed on the
+      # LAN/internet (fix M-2).
+      - "127.0.0.1:55553:55553"
+      # Reverse shell listener ports — Metasploit binds here when exploits use
+      # reverse payloads. The victim connects back to the attacker IP, so for a
+      # real engagement set LISTENER_BIND to your LAN IP (e.g. 192.168.1.50) in
+      # .env. Defaults to loopback so a fresh/default deployment does NOT expose
+      # open shell-catcher ports to the whole network (fix M-2).
+      - "${LISTENER_BIND:-127.0.0.1}:4444:4444"
+      - "${LISTENER_BIND:-127.0.0.1}:4445:4445"
+      - "${LISTENER_BIND:-127.0.0.1}:4446:4446"
+      - "${LISTENER_BIND:-127.0.0.1}:4447:4447"
+      - "${LISTENER_BIND:-127.0.0.1}:4448:4448"
+      - "${LISTENER_BIND:-127.0.0.1}:4449:4449"
+    volumes:
+      - metasploit_data:/root/.msf4
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${MSF_CPUS:-2}"
+          memory: ${MSF_MEM:-2g}
+    networks: [socis-net]
+    healthcheck:
+      test: ["CMD", "ps", "aux"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  # ─── All MCP Tool Servers (consolidated) ─────────────────────────────────
+  # 19 Python MCP servers managed by supervisord:
+  #   cve(8100)  nmap(8101)  nuclei(8102)  osint(8103)  metasploit(8104)
+  #   mitre(8105)  waf(8107)  ffuf(8108)  sqlmap(8109)  ssl(8112)
+  #   cisa_kev(8114)  epss(8115)  poc(8116)  nikto(8117)  masscan(8118)
+  #   wpscan(8119)  jwt(8120)  gobuster(8121)  cve_lite(8122)
+  mcp_all:
+    build:
+      context: ../../mcp-servers
+      dockerfile: Dockerfile
+    image: docker-mcp_all
+    container_name: socis_mcp_all
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      metasploit_rpc:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8100:8100"
+      - "127.0.0.1:8101:8101"
+      - "127.0.0.1:8102:8102"
+      - "127.0.0.1:8103:8103"
+      - "127.0.0.1:8104:8104"
+      - "127.0.0.1:8105:8105"
+      - "127.0.0.1:8107:8107"
+      - "127.0.0.1:8108:8108"
+      - "127.0.0.1:8109:8109"
+      - "127.0.0.1:8112:8112"
+      - "127.0.0.1:8114:8114"
+      - "127.0.0.1:8115:8115"
+      - "127.0.0.1:8116:8116"
+      - "127.0.0.1:8117:8117"
+      - "127.0.0.1:8118:8118"
+      - "127.0.0.1:8119:8119"
+      - "127.0.0.1:8120:8120"
+      - "127.0.0.1:8121:8121"
+      - "127.0.0.1:8122:8122"
+      - "127.0.0.1:8123:8123"
+      - "127.0.0.1:8124:8124"
+      - "127.0.0.1:8125:8125"
+      - "127.0.0.1:8126:8126"
+      - "127.0.0.1:8127:8127"
+      - "127.0.0.1:8128:8128"
+      - "127.0.0.1:8129:8129"
+      - "127.0.0.1:8130:8130"
+      - "127.0.0.1:8131:8131"
+      - "127.0.0.1:8132:8132"
+      - "127.0.0.1:8133:8133"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - wordlists:/usr/share/wordlists
+      - cve_lite_db:/var/cve-lite
+      - projects_data:/projects:ro
+    environment:
+      DATABASE_URL: postgresql+asyncpg://socis_admin:${DB_PASSWORD:-socis_secure_pass}@postgres:5432/socis_ai_pt
+      REDIS_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/0
+      # Evictable cache DB (perf #6), separate from the queue/token DB 0.
+      REDIS_CACHE_URL: redis://:${REDIS_PASSWORD:-socis_redis_pass}@redis:6379/1
+      BACKEND_URL: http://backend:8000
+      MCP_AUTH_TOKEN: ${MCP_AUTH_TOKEN:-}
+      MCP_MITRE_ENABLED: ${MCP_MITRE_ENABLED:-true}
+      # Metasploit bridge env vars (used by metasploit_server.py inside supervisord)
+      MSF_HOST: ${MSF_HOST:-metasploit_rpc}
+      MSF_PORT: ${MSF_PORT:-55553}
+      # No insecure default (fix L-5) — must be set in .env.
+      MSF_PASSWORD: ${MSF_PASSWORD:?MSF_PASSWORD must be set in .env (openssl rand -hex 24)}
+      MSF_SSL: ${MSF_SSL:-false}
+      # SSRF scope control for all scanner MCP servers (fix H-5).
+      MCP_ALLOW_PRIVATE_TARGETS: ${MCP_ALLOW_PRIVATE_TARGETS:-false}
+      MCP_ALLOWED_PRIVATE_NETS: ${MCP_ALLOWED_PRIVATE_NETS:-}
+      PAYLOAD_SAVE_DIR: ${PAYLOAD_SAVE_DIR:-}
+      # ffuf wordlist directory
+      WORDLIST_DIR: /usr/share/wordlists
+      # cve-lite advisory DB location (persisted across restarts)
+      CVE_LITE_ALLOWED_ROOTS: /projects:/tmp:/workspace:/app/projects:/var/cve-lite
+      # WPScan API token (optional — improves vulnerability detection quality)
+      WPSCAN_API_TOKEN: ${WPSCAN_API_TOKEN:-}
+    # Resource limits (perf #1) — cap blast radius; override in .env.
+    deploy:
+      resources:
+        limits:
+          cpus: "${MCP_CPUS:-4}"
+          memory: ${MCP_MEM:-4g}
+    networks: [socis-net]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ─── Monitoring stack (observability #9) — OPT-IN via "monitoring" profile ──
+  # Enable with:  docker compose --profile monitoring up -d
+  # Grafana is served at /monitoring/ through the platform nginx, themed to match
+  # SOCIS (dark + cyan + Inter). Prometheus scrapes the backend /metrics plus the
+  # node/postgres/redis exporters. All bound to loopback (nginx proxies Grafana).
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: socis_prometheus
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.retention.time=${PROM_RETENTION:-15d}"
+      - "--storage.tsdb.path=/prometheus"
+    volumes:
+      - ../monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    deploy:
+      resources:
+        limits:
+          cpus: "${PROM_CPUS:-1}"
+          memory: ${PROM_MEM:-1g}
+    networks: [socis-net]
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: socis_grafana
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [prometheus]
+    environment:
+      # Host-agnostic sub-path serving (works on ANY deployment IP/hostname with
+      # no config). Per Grafana's reverse-proxy guide: leave domain EMPTY, use a
+      # %(domain)s root_url, and have nginx forward the real Host header
+      # (proxy_set_header Host $http_host in nginx.conf). Grafana then builds
+      # redirects against whatever host the browser used — no MONITORING_DOMAIN.
+      GF_SERVER_DOMAIN: ""
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/monitoring/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set in .env (openssl rand -hex 16)}
+      GF_AUTH_ANONYMOUS_ENABLED: ${GRAFANA_ANONYMOUS:-false}
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: dark
+    volumes:
+      - ../monitoring/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ../monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "127.0.0.1:3001:3000"   # loopback — nginx proxies /monitoring/
+    deploy:
+      resources:
+        limits:
+          cpus: "${GRAFANA_CPUS:-1}"
+          memory: ${GRAFANA_MEM:-512m}
+    networks: [socis-net]
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: socis_node_exporter
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--path.rootfs=/host"
+    volumes:
+      - /:/host:ro,rslave
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 128m
+    networks: [socis-net]
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: socis_postgres_exporter
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [postgres]
+    environment:
+      DATA_SOURCE_NAME: "postgresql://socis_admin:${DB_PASSWORD:-socis_secure_pass}@postgres:5432/socis_ai_pt?sslmode=disable"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 128m
+    networks: [socis-net]
+
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.62.0
+    container_name: socis_redis_exporter
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    depends_on: [redis]
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-socis_redis_pass}
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 128m
+    networks: [socis-net]
+
+networks:
+  socis-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  reports_data:
+  metasploit_data:
+  wordlists:
+  cve_lite_db:
+  projects_data:
+  plugins_data:
+  prometheus_data:
+  grafana_data:

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ brand_name }} — Executive Summary</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, sans-serif; background: #f8fafc; color: #1e293b; }
+
+  .cover { background: #0f172a; color: #fff; padding: 60px 48px; }
+  .cover h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #94a3b8; margin-top: 8px; font-size: 1.05rem; }
+  .cover .meta { margin-top: 32px; display: flex; gap: 40px; font-size: 0.9rem; color: #cbd5e1; }
+  .cover .meta span strong { color: #fff; display: block; font-size: 1rem; }
+
+  .risk-badge { display: inline-block; padding: 10px 28px; border-radius: 40px; font-size: 1.3rem; font-weight: 800; letter-spacing: 2px; margin: 32px 0 0; }
+  .risk-badge.CRITICAL { background: #ff3366; color: #fff; }
+  .risk-badge.HIGH { background: #f97316; color: #fff; }
+  .risk-badge.MEDIUM { background: #f59e0b; color: #fff; }
+  .risk-badge.LOW { background: #22c55e; color: #fff; }
+
+  .content { max-width: 900px; margin: 0 auto; padding: 48px 24px; }
+  section { margin-bottom: 48px; }
+  h2 { font-size: 1.4rem; font-weight: 700; color: #0f172a; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 16px; }
+  .summary-card { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .summary-card .count { font-size: 2.2rem; font-weight: 800; }
+  .summary-card .label { font-size: 0.8rem; color: #64748b; margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
+  .summary-card.critical .count { color: #ff3366; }
+  .summary-card.high .count { color: #f97316; }
+  .summary-card.medium .count { color: #f59e0b; }
+  .summary-card.low .count { color: #22c55e; }
+
+  .vuln-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .vuln-table th { background: #f1f5f9; padding: 12px 16px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #475569; }
+  .vuln-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+  .badge.critical { background: #ffe4ec; color: #ff3366; }
+  .badge.high { background: #fff3e6; color: #f97316; }
+  .badge.medium { background: #fffbeb; color: #d97706; }
+  .badge.low { background: #dcfce7; color: #16a34a; }
+
+  .remediation-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .remediation-table th { background: #f1f5f9; padding: 12px 16px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: #475569; }
+  .remediation-table td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+  .effort-high { color: #f97316; font-weight: 700; }
+  .effort-med { color: #f59e0b; font-weight: 700; }
+  .effort-low { color: #22c55e; font-weight: 700; }
+
+  footer { text-align: center; color: #94a3b8; font-size: 0.8rem; padding: 24px; }
+</style>
+</head>
+<body>
+
+<!-- Cover -->
+<div class="cover">
+  <h1>{{ brand_name }}</h1>
+  <div class="subtitle">Executive Penetration Test Summary</div>
+  <div class="meta">
+    <span><strong>{{ scan.target }}</strong>Target</span>
+    <span><strong>{{ generated_at }}</strong>Report Date</span>
+    <span><strong>{{ duration }}</strong>Scan Duration</span>
+  </div>
+  <div class="risk-badge {{ (scan.risk_level or 'LOW').upper() }}">
+    {{ (scan.risk_level or 'LOW').upper() }} RISK
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Summary Tiles -->
+  <section>
+    <h2>Vulnerability Overview</h2>
+    <div class="summary-grid">
+      <div class="summary-card critical"><div class="count">{{ vuln_counts.critical }}</div><div class="label">Critical</div></div>
+      <div class="summary-card high"><div class="count">{{ vuln_counts.high }}</div><div class="label">High</div></div>
+      <div class="summary-card medium"><div class="count">{{ vuln_counts.medium }}</div><div class="label">Medium</div></div>
+      <div class="summary-card low"><div class="count">{{ vuln_counts.low }}</div><div class="label">Low</div></div>
+    </div>
+  </section>
+
+  <!-- Business Impact -->
+  <section>
+    <h2>Business Impact</h2>
+    {% if ai_summary %}
+    <p style="line-height:1.7; color:#334155;">{{ ai_summary[:800] }}</p>
+    {% else %}
+    <p style="color:#64748b;">No AI analysis available for this scan.</p>
+    {% endif %}
+  </section>
+
+  <!-- Top 5 Vulnerabilities -->
+  <section>
+{% if scan_incomplete %}
+  <div style="border:1px solid #f59e0b;border-left:5px solid #f59e0b;background:#fffbeb;color:#78350f;border-radius:6px;padding:12px 16px;margin:0 0 16px;font-size:13px;line-height:1.5;">
+    <strong>{% if all_tools_failed %}This assessment did not run.{% else %}This assessment is incomplete.{% endif %}</strong>
+    {{ tools_failed }} of {{ tools_total }} tool(s) did not complete, so an empty findings list here is <strong>not</strong> evidence that the target is secure.
+    {% for r in failure_reasons %}<div style="font-family:monospace;font-size:11px;margin-top:6px;color:#92400e;">{{ r }}</div>{% endfor %}
+  </div>
+  {% endif %}
+    {% if recon_note %}<p style="font-size:12px;color:#92400e;border-left:3px solid #f59e0b;padding:4px 0 4px 10px;margin:0 0 14px;">{{ recon_note }}</p>{% endif %}
+    {% if coverage_note %}<p style="font-size:12px;color:#92400e;border-left:3px solid #ef4444;padding:4px 0 4px 10px;margin:0 0 14px;">{{ coverage_note }}</p>{% endif %}
+    <h2>Top Findings</h2>
+    <table class="vuln-table">
+      <thead>
+        <tr><th>#</th><th>Vulnerability</th><th>Severity</th><th>OWASP Category</th></tr>
+      </thead>
+      <tbody>
+        {% for vuln in vulnerabilities[:5] %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ vuln.vuln_name }}</td>
+          <td><span class="badge {{ vuln.severity }}">{{ vuln.severity }}</span></td>
+          <td>{{ vuln.owasp_category or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align:center;color:#94a3b8;">{% if scan_incomplete %}Not a clean result: some tools did not complete{% else %}No vulnerabilities found{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Remediation Roadmap -->
+  <section>
+    <h2>Remediation Roadmap</h2>
+    <table class="remediation-table">
+      <thead>
+        <tr><th>Priority</th><th>Action</th><th>Effort</th></tr>
+      </thead>
+      <tbody>
+        {% for vuln in vulnerabilities[:5] %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>Remediate {{ vuln.vuln_name }}{% if vuln.cve_id %} ({{ vuln.cve_id }}){% endif %}</td>
+          <td>
+            {% if vuln.severity in ('critical', 'high') %}<span class="effort-high">High</span>
+            {% elif vuln.severity == 'medium' %}<span class="effort-med">Medium</span>
+            {% else %}<span class="effort-low">Low</span>{% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3" style="text-align:center;color:#94a3b8;">No items</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<footer>
+  Generated by {{ brand_name }} &nbsp;|&nbsp; {{ generated_at }} &nbsp;|&nbsp; CONFIDENTIAL
+</footer>
+</body>
+</html>

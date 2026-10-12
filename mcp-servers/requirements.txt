@@ -1,0 +1,22 @@
+# Pinned 2026-10-12 for pip-audit reproducibility (was >= floors). Orig backup: /tmp/requirements-mcp.orig
+httpx==0.28.1
+fastapi==0.143.0
+uvicorn==0.54.0
+jinja2==3.1.6  # CVE-2025-27516
+redis==8.1.0
+# Metasploit MCP Server - https://github.com/GH05TCREW/MetasploitMCP
+# Note: Install from GitHub as PyPI package not available yet
+# pip install git+https://github.com/GH05TCREW/MetasploitMCP.git
+# Or use the embedded implementation with direct RPC calls
+msgspec==0.22.0
+msgpack==1.2.3
+pydantic==2.14.1
+# JWT MCP Server
+PyJWT==2.15.1
+cryptography==50.0.2
+# Anomaly Detection MCP Server (optional — gracefully skipped if not installed)
+scikit-learn==1.9.1
+numpy==2.5.4  # requires python>=3.12 (mcp image base); do not downgrade image without pinning back
+joblib==1.6.0
+# MITRE ATT&CK MCP Server — official MITRE STIX library
+mitreattack-python==6.2.1

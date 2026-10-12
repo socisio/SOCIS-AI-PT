@@ -1,0 +1,68 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#0ff0fc" }, "unit": "short" } },
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Queue depth (pending scans)",
+      "type": "stat",
+      "targets": [ { "expr": "socis_scan_queue_depth", "refId": "A" } ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#0ff0fc" }, "unit": "short" } },
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 0 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Scans in flight",
+      "type": "stat",
+      "targets": [ { "expr": "socis_scans_in_progress", "refId": "A" } ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#0ff0fc" }, "unit": "s" } },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 0 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "title": "Avg scan duration",
+      "type": "stat",
+      "targets": [ { "expr": "rate(socis_scan_duration_seconds_sum[30m]) / clamp_min(rate(socis_scan_duration_seconds_count[30m]), 1)", "refId": "A" } ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "fixed", "fixedColor": "#BA7517" }, "custom": { "lineWidth": 2, "fillOpacity": 10 }, "unit": "short" } },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 4 },
+      "id": 4,
+      "title": "Queue depth over time",
+      "type": "timeseries",
+      "targets": [ { "expr": "socis_scan_queue_depth", "legendFormat": "pending", "refId": "A" } ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2, "fillOpacity": 40, "drawStyle": "bars", "stacking": { "mode": "normal" } }, "unit": "short" } },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 4 },
+      "id": 5,
+      "title": "Scans completed vs failed (rate)",
+      "type": "timeseries",
+      "targets": [
+        { "expr": "sum(rate(socis_scans_total{result=\"completed\"}[5m]))", "legendFormat": "completed", "refId": "A" },
+        { "expr": "sum(rate(socis_scans_total{result=\"failed\"}[5m]))", "legendFormat": "failed", "refId": "B" }
+      ]
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["socis"],
+  "templating": { "list": [] },
+  "time": { "from": "now-3h", "to": "now" },
+  "title": "SOCIS · Scans & workers",
+  "uid": "socis-scans",
+  "version": 1
+}

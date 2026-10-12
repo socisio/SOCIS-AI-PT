@@ -1,0 +1,7702 @@
+{
+ "version": 1,
+ "generated_from": "mcp-servers/*_server.py inputSchema (real tool schemas)",
+ "tools": [
+  {
+   "server": "api_security",
+   "action": "api_misconfig_check",
+   "label": "api misconfig check",
+   "category": "API Security",
+   "needs": "API/GraphQL Endpoint URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check an API endpoint for common misconfigurations: permissive/reflected CORS policy (especially combined with credentials), verbose error disclosure (stack traces in error responses), and missing rat",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "API endpoint URL to check"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "api_security",
+   "action": "graphql_introspect",
+   "label": "graphql introspect",
+   "category": "API Security",
+   "needs": "API/GraphQL Endpoint URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Send a standard GraphQL introspection query to an endpoint and parse the schema it returns, flagging mutations and types whose names look sensitive (user, admin, password, token, \u2026). Read-only \u2014 intro",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "GraphQL endpoint URL, e.g. https://api.example.com/graphql"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "api_security",
+   "action": "graphql_query_risk",
+   "label": "graphql query risk",
+   "category": "API Security",
+   "needs": "API/GraphQL Endpoint URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "When introspection is disabled, probe a small set of common query/mutation field names (user, login, createUser, resetPassword, admin, \u2026) to see which ones the endpoint still recognises. Sends only mi",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "GraphQL endpoint URL"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "api_security",
+   "action": "openapi_discover",
+   "label": "openapi discover",
+   "category": "API Security",
+   "needs": "API/GraphQL Endpoint URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check common OpenAPI/Swagger specification paths on a target and, if one is found, list the exposed endpoints, methods, and whether authentication appears to be required for each.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Base URL of the target, e.g. https://api.example.com"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Per-path timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "asrep_roast",
+   "label": "asrep roast",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "OFFENSIVE: list accounts that do not require Kerberos pre-authentication (AS-REP roastable) and capture their crackable hashes. Gated by SOCIS_AGENT_ALLOW_OFFENSIVE.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "AD domain, e.g. corp.local"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain controller host/IP"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional password"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    },
+    {
+     "name": "userlist",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional username wordlist to test"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional username (if you already have one)"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "ldap_enum",
+   "label": "ldap enum",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Enumerate domain users, groups and computers over LDAP. Safe recon \u2014 read-only. Needs valid credentials for most environments; some allow anonymous bind.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain controller host/IP"
+    },
+    {
+     "name": "collect",
+     "type": "text",
+     "required": false,
+     "default": "users",
+     "enum": [
+      "users",
+      "groups",
+      "computers"
+     ],
+     "hint": "What to enumerate"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "AD domain, e.g. corp.local"
+    },
+    {
+     "name": "hash",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "NT hash (instead of a password)"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Password"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Username"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "null_session",
+   "label": "null session",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check for anonymous (null-session) SMB/LDAP access \u2014 a common misconfiguration that exposes users and shares without credentials. Safe recon.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host/IP"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "password_spray",
+   "label": "password spray",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "OFFENSIVE: try ONE password against MANY usernames over SMB (low-and-slow to avoid lockouts). Only runs when the server operator has enabled SOCIS_AGENT_ALLOW_OFFENSIVE and the target is authorised. U",
+   "fields": [
+    {
+     "name": "password",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The single password to spray"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host/IP or domain controller"
+    },
+    {
+     "name": "userlist",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Username wordlist filename or allowed absolute path"
+    },
+    {
+     "name": "continue_on_success",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Keep going after a hit"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "AD domain, e.g. corp.local"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 600,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "smb_enum",
+   "label": "smb enum",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Enumerate a Windows/SMB host: OS, hostname, domain, signing status, shares and sessions. Safe recon \u2014 read-only. Works anonymously or with credentials.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host or CIDR, e.g. 10.0.0.10 or 10.0.0.0/24"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional AD domain, e.g. corp.local"
+    },
+    {
+     "name": "hash",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional NT/NTLM hash (instead of a password)"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional password"
+    },
+    {
+     "name": "shares",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Also enumerate accessible shares"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional username"
+    }
+   ]
+  },
+  {
+   "server": "ad",
+   "action": "user_enum",
+   "label": "user enum",
+   "category": "Active Directory",
+   "needs": "Internal Host / DC",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Validate which usernames exist in a domain via Kerberos pre-authentication (kerbrute userenum). Recon \u2014 it only checks existence, it does not attempt passwords.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "AD domain, e.g. corp.local"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain controller host/IP"
+    },
+    {
+     "name": "userlist",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Username wordlist filename (in the wordlists dir) or an allowed absolute path"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "anomaly",
+   "action": "anomaly_score",
+   "label": "anomaly score",
+   "category": "Analysis (ML)",
+   "needs": "Traffic data",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Score a list of URLs against a trained anomaly model. Returns anomaly scores and flags responses that deviate significantly from the trained baseline (is_anomalous=true means suspicious).",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target identifier used during anomaly_train"
+    },
+    {
+     "name": "urls",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of URLs to score for anomalies"
+    },
+    {
+     "name": "threshold",
+     "type": "number",
+     "required": false,
+     "default": -0.1,
+     "enum": null,
+     "hint": "Anomaly score threshold (lower = more anomalous). Default: -0.1"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Per-request timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "anomaly",
+   "action": "anomaly_status",
+   "label": "anomaly status",
+   "category": "Analysis (ML)",
+   "needs": "Traffic data",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check whether a trained model exists for a target and return its metadata.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target identifier to check"
+    }
+   ]
+  },
+  {
+   "server": "anomaly",
+   "action": "anomaly_train",
+   "label": "anomaly train",
+   "category": "Analysis (ML)",
+   "needs": "Traffic data",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Train an Isolation Forest anomaly detector on baseline HTTP responses for a target. Fetches each sample URL, extracts features (status_code, body_length, header_count, response_time_ms), and saves a m",
+   "fields": [
+    {
+     "name": "sample_urls",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of URLs to sample for baseline training (recommend 20-100 URLs)"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target hostname/URL used as model identifier (e.g., https://example.com)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Per-request timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "cloud",
+   "action": "bucket_enum",
+   "label": "bucket enum",
+   "category": "Cloud Recon",
+   "needs": "Bucket Name / Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check whether a named cloud storage bucket exists and whether it is publicly listable, across AWS S3, Azure Blob Storage, and Google Cloud Storage. Read-only, no credentials used.",
+   "fields": [
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Bucket / container name to check, e.g. 'acme-backups'"
+    },
+    {
+     "name": "providers",
+     "type": "list",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Which providers to check (default: all three)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Per-request timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "cloud",
+   "action": "bucket_guess",
+   "label": "bucket guess",
+   "category": "Cloud Recon",
+   "needs": "Bucket Name / Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Derive and check common bucket-name permutations from a company or domain name (e.g. 'acme' -> acme, acme-backup, acme-prod, acme-dev, acme-assets, acme-static, acme-uploads, ...). Read-only recon acr",
+   "fields": [
+    {
+     "name": "base",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Company or domain name to derive permutations from"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 15,
+     "enum": null,
+     "hint": "Max permutations to try"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 15,
+     "enum": null,
+     "hint": "Per-request timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "cloud",
+   "action": "cloud_fingerprint",
+   "label": "cloud fingerprint",
+   "category": "Cloud Recon",
+   "needs": "Bucket Name / Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Identify which cloud provider (AWS / Azure / GCP / Cloudflare / other) a target web host is running behind, from its response headers and hosting patterns. Read-only, one request to the target.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host or URL, e.g. example.com or https://example.com"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "cloud",
+   "action": "metadata_check",
+   "label": "metadata check",
+   "category": "Cloud Recon",
+   "needs": "Bucket Name / Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Test whether a target web application's own responses leak cloud instance-metadata content \u2014 an indicator of an SSRF vulnerability reachable through that app. This sends a normal request to the TARGET",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL to probe, e.g. https://example.com/fetch?url="
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "compliance",
+   "action": "classify_finding",
+   "label": "classify finding",
+   "category": "Compliance Mapping",
+   "needs": "Tool Name / Finding Text",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Classify a finding into OWASP Top 10 (2021), PTES phase, and likely MITRE ATT&CK tactics. Give the platform tool/server name that produced the finding, a free-text description, or both \u2014 tool name set",
+   "fields": [
+    {
+     "name": "description",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Free-text finding description, e.g. 'SQL injection in login form'"
+    },
+    {
+     "name": "tool",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Platform tool/server name, e.g. 'sqlmap', 'ad', 'nuclei'"
+    }
+   ]
+  },
+  {
+   "server": "compliance",
+   "action": "list_mappings",
+   "label": "list mappings",
+   "category": "Compliance Mapping",
+   "needs": "Tool Name / Finding Text",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List every tool-to-standard mapping this server knows (all platform tools and their OWASP/PTES/ATT&CK classification), for reference.",
+   "fields": []
+  },
+  {
+   "server": "compliance",
+   "action": "map_tool_to_standards",
+   "label": "map tool to standards",
+   "category": "Compliance Mapping",
+   "needs": "Tool Name / Finding Text",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Given a platform tool/server name, return its typical OWASP Top 10 / PTES / MITRE ATT&CK mapping \u2014 useful for summarising which standards a completed workflow already covers.",
+   "fields": [
+    {
+     "name": "tool",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Platform tool/server name"
+    }
+   ]
+  },
+  {
+   "server": "container",
+   "action": "docker_api_check",
+   "label": "docker api check",
+   "category": "Container / Kubernetes",
+   "needs": "Image Ref / File Content",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check whether a host's Docker daemon API is exposed and unauthenticated on the standard ports (2375 plaintext, 2376 TLS) \u2014 a critical misconfiguration that typically allows full host takeover (an atta",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host or IP"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "container",
+   "action": "dockerfile_scan",
+   "label": "dockerfile scan",
+   "category": "Container / Kubernetes",
+   "needs": "Image Ref / File Content",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan a Dockerfile's contents for misconfigurations: running as root, missing HEALTHCHECK, secrets baked into ENV/ARG, use of the 'latest' tag, and other CIS Docker Benchmark issues.",
+   "fields": [
+    {
+     "name": "content",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The full text content of the Dockerfile"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 60,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "container",
+   "action": "image_scan",
+   "label": "image scan",
+   "category": "Container / Kubernetes",
+   "needs": "Image Ref / File Content",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan a container image for known CVEs by image reference (e.g. 'nginx:1.18', 'myregistry.io/app:latest'). Pulls the image's metadata from its registry \u2014 the image does not need to be running anywhere ",
+   "fields": [
+    {
+     "name": "image",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Image reference, e.g. 'nginx:1.18'"
+    },
+    {
+     "name": "severity",
+     "type": "text",
+     "required": false,
+     "default": "ALL",
+     "enum": [
+      "LOW",
+      "MEDIUM",
+      "HIGH",
+      "CRITICAL",
+      "ALL"
+     ],
+     "hint": "Minimum severity to report (ALL = no filter)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 180,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "container",
+   "action": "k8s_manifest_scan",
+   "label": "k8s manifest scan",
+   "category": "Container / Kubernetes",
+   "needs": "Image Ref / File Content",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan a Kubernetes YAML manifest's contents for misconfigurations: privileged containers, hostNetwork/hostPID, missing resource limits, default service account usage, missing securityContext, and other",
+   "fields": [
+    {
+     "name": "content",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The full text content of the Kubernetes YAML manifest"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 60,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "dns_deep",
+   "action": "email_security_posture",
+   "label": "email security posture",
+   "category": "DNS Deep",
+   "needs": "Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check a domain's SPF, DKIM (at common selectors), and DMARC TXT records and flag missing or weak policies \u2014 no SPF record, a DMARC policy of p=none (monitor-only, not enforced), or no DKIM record foun",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain to check, e.g. example.com"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 15,
+     "enum": null,
+     "hint": "Per-query timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "dns_deep",
+   "action": "subdomain_takeover_check",
+   "label": "subdomain takeover check",
+   "category": "DNS Deep",
+   "needs": "Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Resolve a list of subdomains and flag any whose CNAME points at a cloud service (S3, Azure, GitHub Pages, Heroku, Fastly, Shopify, Netlify, Zendesk) that returns a 'resource not found' response \u2014 mean",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The base domain being assessed (for scope validation)"
+    },
+    {
+     "name": "subdomains",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of subdomains to check, or newline/comma-separated string"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Per-subdomain timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "dns_deep",
+   "action": "zone_transfer_check",
+   "label": "zone transfer check",
+   "category": "DNS Deep",
+   "needs": "Domain",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Attempt an AXFR zone transfer against each authoritative nameserver for a domain. A successful transfer dumps the entire DNS zone (every subdomain, internal hostnames, etc.) \u2014 a serious, classic misco",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain to check, e.g. example.com"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 15,
+     "enum": null,
+     "hint": "Per-nameserver timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "masscan",
+   "action": "masscan_range",
+   "label": "masscan range",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan an IP range (CIDR) for specific ports \u2014 useful for internal network mapping.",
+   "fields": [
+    {
+     "name": "cidr",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CIDR range to scan (e.g., 192.168.1.0/24)"
+    },
+    {
+     "name": "extra_args",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Additional masscan flags (whitelisted: --banners, --source-port, --source-ip, --router-mac, --adapter-ip/--port/--mac, --retries, --wait, --offline, --ping, --a"
+    },
+    {
+     "name": "ports",
+     "type": "text",
+     "required": false,
+     "default": "22,80,443,445,3389,8080",
+     "enum": null,
+     "hint": "Ports to check (e.g., 22,80,443,3389)"
+    },
+    {
+     "name": "rate",
+     "type": "number",
+     "required": false,
+     "default": 500,
+     "enum": null,
+     "hint": "Packets per second"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "masscan",
+   "action": "masscan_scan",
+   "label": "masscan scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run masscan against a target IP or CIDR range with custom port specification. Much faster than nmap for large port sweeps.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target IP address or CIDR range (e.g., 192.168.1.1 or 10.0.0.0/24)"
+    },
+    {
+     "name": "extra_args",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Additional masscan flags (whitelisted: --banners, --source-port, --source-ip, --router-mac, --adapter-ip/--port/--mac, --retries, --wait, --offline, --ping, --a"
+    },
+    {
+     "name": "ports",
+     "type": "text",
+     "required": false,
+     "default": "1-1024",
+     "enum": null,
+     "hint": "Port specification (e.g., 80,443,8080 or 1-1000 or 0-65535)"
+    },
+    {
+     "name": "rate",
+     "type": "number",
+     "required": false,
+     "default": 1000,
+     "enum": null,
+     "hint": "Packets per second (max 10000 for safety)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "masscan",
+   "action": "masscan_top_ports",
+   "label": "masscan top ports",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Quickly scan the top N most common ports on a target using masscan.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target IP address or CIDR range"
+    },
+    {
+     "name": "extra_args",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Additional masscan flags (whitelisted: --banners, --source-port, --source-ip, --router-mac, --adapter-ip/--port/--mac, --retries, --wait, --offline, --ping, --a"
+    },
+    {
+     "name": "rate",
+     "type": "number",
+     "required": false,
+     "default": 2000,
+     "enum": null,
+     "hint": "Packets per second"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 60,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "top",
+     "type": "number",
+     "required": false,
+     "default": 1000,
+     "enum": [
+      100,
+      1000,
+      10000
+     ],
+     "hint": "Number of top ports to scan (100, 1000, or 10000)"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_brute_scan",
+   "label": "nmap brute scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Run nmap brute-force credential attacks against network services (SSH, FTP, HTTP, Telnet, etc.) using built-in wordlists.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target IP address or hostname"
+    },
+    {
+     "name": "passdb",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for passwords (e.g. common, big). Defaults to nmap's passwords.lst."
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target port (auto-detected from service if omitted)"
+    },
+    {
+     "name": "service",
+     "type": "text",
+     "required": false,
+     "default": "ssh",
+     "enum": [
+      "ssh",
+      "ftp",
+      "http",
+      "telnet",
+      "smtp",
+      "pop3",
+      "imap",
+      "vnc",
+      "rdp"
+     ],
+     "hint": "Service/protocol to brute-force"
+    },
+    {
+     "name": "userdb",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for usernames. Defaults to nmap's usernames.lst."
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_http_scan",
+   "label": "nmap http scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan HTTP services for vulnerabilities and info.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "http_script",
+     "type": "text",
+     "required": false,
+     "default": "http-title",
+     "enum": [
+      "http-title",
+      "http-headers",
+      "http-methods",
+      "http-robots",
+      "http-waf-detect",
+      "http-sql-injection"
+     ],
+     "hint": "HTTP check type"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_quick_scan",
+   "label": "nmap quick scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Fast scan for common ports (top 100).",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "preset",
+     "type": "text",
+     "required": false,
+     "default": "top100",
+     "enum": [
+      "top100",
+      "top1000",
+      "top10000",
+      "top500"
+     ],
+     "hint": "Quick scan preset"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_scan",
+   "label": "nmap scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run an nmap port scan against a target IP, hostname, or CIDR range. Returns parsed open ports, services, and version info.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target IP address, hostname, or CIDR (e.g. 192.168.1.1 or 10.0.0.0/24)"
+    },
+    {
+     "name": "flags",
+     "type": "text",
+     "required": false,
+     "default": "-sV -sC -T4 --open",
+     "enum": [
+      "-sV -sC -T4 --open",
+      "-sS -sV -sC -T4 --open",
+      "-sT -sV -T4 --open",
+      "-sU -sV -T4 --open",
+      "-sL -sn -T4",
+      "-Pn -sV -sC -T4 --open"
+     ],
+     "hint": "nmap scan type"
+    },
+    {
+     "name": "ports",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Port specification (e.g. '22,80,443' or '1-1000' or 'top100')"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_service_scan",
+   "label": "nmap service scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Detect services and versions on open ports.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "service_detect",
+     "type": "text",
+     "required": false,
+     "default": "-sV",
+     "enum": [
+      "-sV",
+      "-sV --version-intensity 9",
+      "-sV --script=default"
+     ],
+     "hint": "Service detection level"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_smb_scan",
+   "label": "nmap smb scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan for SMB vulnerabilities and enumerations. For brute mode, optionally supply custom wordlists from /usr/share/wordlists/.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "passdb",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for password brute-force (e.g. common, big). Used only when smb_type=brute. Leave empty to use nmap's default passwords.lst."
+    },
+    {
+     "name": "smb_type",
+     "type": "text",
+     "required": false,
+     "default": "enum",
+     "enum": [
+      "enum",
+      "vuln",
+      "brute"
+     ],
+     "hint": "SMB check type"
+    },
+    {
+     "name": "userdb",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for username list. Used only when smb_type=brute. Leave empty to use nmap's default usernames.lst."
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "nmap_vuln_scan",
+   "label": "nmap vuln scan",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan for common vulnerabilities using nmap NSE scripts.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "vuln_script",
+     "type": "text",
+     "required": false,
+     "default": "vuln",
+     "enum": [
+      "vuln",
+      "exploit",
+      "discovery",
+      "auth",
+      "brute"
+     ],
+     "hint": "Vulnerability script to run"
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "os_detect",
+   "label": "os detect",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Attempt OS detection on a target.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "nmap",
+   "action": "port_check",
+   "label": "port check",
+   "category": "Discovery & Recon",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check if a specific port is open on a target.",
+   "fields": [
+    {
+     "name": "port",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "dns_lookup",
+   "label": "dns lookup",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Perform DNS record lookups (A, AAAA, MX, NS, TXT, SOA, CNAME) for a domain.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain to query"
+    },
+    {
+     "name": "record_type",
+     "type": "text",
+     "required": false,
+     "default": "all",
+     "enum": [
+      "all",
+      "A",
+      "AAAA",
+      "MX",
+      "NS",
+      "TXT",
+      "SOA",
+      "CNAME",
+      "PTR",
+      "SRV",
+      "CAA"
+     ],
+     "hint": "DNS record type"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "http_headers",
+   "label": "http headers",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Fetch HTTP response headers from a URL to identify technologies, security settings, and server information.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "URL to fetch headers from"
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "ip_geolocation",
+   "label": "ip geolocation",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get geolocation, ASN, and organization information for an IP address.",
+   "fields": [
+    {
+     "name": "ip",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "IP address to geolocate"
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "ssl_info",
+   "label": "ssl info",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get SSL/TLS certificate details for a domain: issuer, expiry, SANs, cipher suites.",
+   "fields": [
+    {
+     "name": "hostname",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain to inspect"
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": 443,
+     "enum": null,
+     "hint": "Port to connect to"
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "subdomain_enum",
+   "label": "subdomain enum",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Enumerate subdomains for a domain using passive DNS and certificate transparency logs.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Base domain to enumerate"
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "tech_fingerprint",
+   "label": "tech fingerprint",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Fingerprint web technologies using HTTP headers and response analysis.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "osint",
+   "action": "whois_lookup",
+   "label": "whois lookup",
+   "category": "Discovery & Recon",
+   "needs": "Domain or IP",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Perform WHOIS lookup for a domain or IP address. Returns registrar, registration dates, nameservers, and contact info.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Domain name or IP address"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "ssl",
+   "action": "check_ssl",
+   "label": "check ssl",
+   "category": "Discovery & Recon",
+   "needs": "Hostname",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check SSL/TLS configuration and grade using the SSL Labs API. Returns detailed grading, protocol info, and security findings.",
+   "fields": [
+    {
+     "name": "hostname",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Hostname to check (e.g. example.com, google.com)"
+    },
+    {
+     "name": "hide_results",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Hide results from public list (default: true)"
+    }
+   ]
+  },
+  {
+   "server": "ssl",
+   "action": "check_ssl_vulnerabilities",
+   "label": "check ssl vulnerabilities",
+   "category": "Discovery & Recon",
+   "needs": "Hostname",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check for specific SSL/TLS vulnerabilities (Heartbleed, POODLE, etc.).",
+   "fields": [
+    {
+     "name": "hostname",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Hostname to check"
+    }
+   ]
+  },
+  {
+   "server": "ssl",
+   "action": "get_ssl_grade",
+   "label": "get ssl grade",
+   "category": "Discovery & Recon",
+   "needs": "Hostname",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Quick SSL grade check - returns only the letter grade (A-F or T).",
+   "fields": [
+    {
+     "name": "hostname",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Hostname to check"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "analyze_evasion",
+   "label": "analyze evasion",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Analyze evasion capabilities and recommend best approach for bypassing detected WAF.",
+   "fields": [
+    {
+     "name": "attack_type",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": [
+      "xss",
+      "sqli",
+      "lfi",
+      "rce"
+     ],
+     "hint": "Type of attack to analyze (xss, sqli, lfi, rce)"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "waf_type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Known WAF type (auto-detected or manual)"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "check_security_headers",
+   "label": "check security headers",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Check for security headers (CSP, HSTS, X-Frame-Options, etc) that indicate WAF/protection.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "detect_rate_limit",
+   "label": "detect rate limit",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Test if the target has rate limiting or throttling.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "requests",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Number of requests to send"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "fingerprint_waf",
+   "label": "fingerprint waf",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Identify and fingerprint WAF/IPS/IDS in place. Detects vendor, version, and protection rules.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL or IP to test (e.g., https://example.com)"
+    },
+    {
+     "name": "protocol",
+     "type": "text",
+     "required": false,
+     "default": "https",
+     "enum": [
+      "http",
+      "https",
+      "all"
+     ],
+     "hint": "Protocol to test (http, https, all)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 60,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "obfuscate_batch",
+   "label": "obfuscate batch",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Apply WAF bypass obfuscation to a list of payloads. Max 50 payloads. Returns obfuscated variants for all.",
+   "fields": [
+    {
+     "name": "payloads",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of payloads to obfuscate (max 50)"
+    },
+    {
+     "name": "techniques",
+     "type": "list",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Techniques to apply sequentially. Omit to apply all 11."
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "obfuscate_payload",
+   "label": "obfuscate payload",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Apply WAF bypass obfuscation techniques to a single payload. Returns all variants. Techniques: base64, url_encode, unicode, hex, case_flip, comment_insert, concat, null_byte, double_encode, char_sub, ",
+   "fields": [
+    {
+     "name": "payload",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The payload to obfuscate (e.g., ' OR 1=1-- or <script>alert(1)</script>)"
+    },
+    {
+     "name": "techniques",
+     "type": "list",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "List of techniques to apply. Omit to apply all 11."
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "scan_waf_nmap",
+   "label": "scan waf nmap",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan for WAF using nmap NSE scripts. More thorough detection.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target host or URL"
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": 443,
+     "enum": null,
+     "hint": "Port to scan"
+    },
+    {
+     "name": "scripts",
+     "type": "text",
+     "required": false,
+     "default": "http-waf-detect",
+     "enum": [
+      "http-waf-detect",
+      "http-waf-fingerprint",
+      "firewall-bypass",
+      "http-waf-detect,vuln",
+      "http-waf-fingerprint,vuln"
+     ],
+     "hint": "Nmap WAF scripts to use"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "suggest_bypass",
+   "label": "suggest bypass",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Auto-detect WAF and suggest the best bypass techniques + obfuscated payload variants for a given target and payload type.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL to fingerprint and generate bypass for"
+    },
+    {
+     "name": "payload",
+     "type": "text",
+     "required": false,
+     "default": "' OR 1=1--",
+     "enum": null,
+     "hint": "Payload to obfuscate (default: ' OR 1=1--)"
+    },
+    {
+     "name": "payload_type",
+     "type": "text",
+     "required": false,
+     "default": "sqli",
+     "enum": [
+      "sqli",
+      "xss",
+      "lfi",
+      "rce",
+      "ssrf",
+      "other"
+     ],
+     "hint": "Attack type for context"
+    },
+    {
+     "name": "waf_type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Known WAF type (skip auto-detection). Options: cloudflare, modsecurity, aws, akamai, f5, imperva"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "test_bypass",
+   "label": "test bypass",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Test for WAF bypass techniques and vulnerabilities. Includes encoding, obfuscation, and protocol tricks.",
+   "fields": [
+    {
+     "name": "payload",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Payload to test (e.g., SQL injection payload)"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "techniques",
+     "type": "list",
+     "required": false,
+     "default": [
+      "url-encoding",
+      "double-encoding",
+      "case-variation",
+      "unicode",
+      "null-byte"
+     ],
+     "enum": null,
+     "hint": "Bypass techniques to test"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "test_protocols",
+   "label": "test protocols",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Test different HTTP protocol versions and methods for protocol-level WAF bypass.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "method",
+     "type": "text",
+     "required": false,
+     "default": "GET",
+     "enum": [
+      "GET",
+      "POST",
+      "PUT",
+      "DELETE",
+      "OPTIONS",
+      "PATCH"
+     ],
+     "hint": "HTTP method to test"
+    }
+   ]
+  },
+  {
+   "server": "waf",
+   "action": "test_tls_fingerprint",
+   "label": "test tls fingerprint",
+   "category": "Discovery & Recon",
+   "needs": "Network Target or URL",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Test TLS fingerprinting and JA3/JA4 fingerprint detection.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL (https://...)"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "generate_payload",
+   "label": "generate payload",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Generate a payload file using Metasploit RPC (saves locally to PAYLOAD_SAVE_DIR).",
+   "fields": [
+    {
+     "name": "format",
+     "type": "text",
+     "required": true,
+     "default": "exe",
+     "enum": [
+      "exe",
+      "elf",
+      "raw",
+      "python",
+      "ruby",
+      "c",
+      "go",
+      "java",
+      "dll",
+      "msi",
+      "ps1",
+      "vba"
+     ],
+     "hint": "Output format"
+    },
+    {
+     "name": "lhost",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "LHOST - callback/reverse connection host"
+    },
+    {
+     "name": "lport",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "LPORT - callback/reverse connection port"
+    },
+    {
+     "name": "payload",
+     "type": "text",
+     "required": true,
+     "default": "windows/meterpreter/reverse_tcp",
+     "enum": [
+      "windows/meterpreter/reverse_tcp",
+      "windows/meterpreter/reverse_https",
+      "windows/meterpreter/bind_tcp",
+      "windows/x64/meterpreter/reverse_tcp",
+      "windows/x64/meterpreter/reverse_https",
+      "linux/x86/meterpreter/reverse_tcp",
+      "linux/x64/meterpreter/reverse_tcp",
+      "python/meterpreter/reverse_tcp",
+      "php/meterpreter/reverse_tcp",
+      "java/jsp_shell_reverse_tcp",
+      "android/meterpreter/reverse_tcp",
+      "apple_ios/meterpreter/reverse_tcp"
+     ],
+     "hint": "Payload module"
+    },
+    {
+     "name": "options",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Additional payload options as key-value pairs"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "get_module_info",
+   "label": "get module info",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get detailed information about a specific Metasploit module including description, options, required settings, and targets.",
+   "fields": [
+    {
+     "name": "module_path",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Full module path (e.g., 'exploit/multi/handler', 'exploit/windows/smb/ms17_010_eternalblue', 'auxiliary/scanner/smb/smb_version')"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_active_sessions",
+   "label": "list active sessions",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Show all current Metasploit sessions with detailed information (session ID, type, payload, target).",
+   "fields": []
+  },
+  {
+   "server": "metasploit",
+   "action": "list_all_exploits",
+   "label": "list all exploits",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "List all Metasploit exploit modules using direct console (more reliable).",
+   "fields": [
+    {
+     "name": "platform",
+     "type": "text",
+     "required": true,
+     "default": "windows",
+     "enum": [
+      "windows",
+      "linux",
+      "unix",
+      "osx",
+      "android",
+      "bsd",
+      "solaris",
+      "multi",
+      "all"
+     ],
+     "hint": "Filter by platform"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 50,
+     "enum": null,
+     "hint": "Maximum results"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_auxiliary_modules",
+   "label": "list auxiliary modules",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List all Metasploit auxiliary modules (scanners, fuzzers, brute-forcers, denial of service).",
+   "fields": [
+    {
+     "name": "category",
+     "type": "text",
+     "required": true,
+     "default": "scanner",
+     "enum": [
+      "scanner",
+      "spoof",
+      "admin",
+      "dos",
+      "fuzzers",
+      "gather",
+      "sniffer",
+      "pdf",
+      "voip"
+     ],
+     "hint": "Auxiliary category to list"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Maximum number of results"
+    },
+    {
+     "name": "service",
+     "type": "text",
+     "required": false,
+     "default": "http",
+     "enum": [
+      "http",
+      "smb",
+      "ssh",
+      "ftp",
+      "telnet",
+      "mysql",
+      "postgresql",
+      "mssql",
+      "oracle",
+      "vnc",
+      "rdp",
+      "dns",
+      "ldap",
+      "smtp",
+      "pop3",
+      "imap",
+      "snmp",
+      "cisco",
+      "firewall",
+      "winrm",
+      "wmi",
+      "nfs",
+      "mongodb",
+      "elasticsearch"
+     ],
+     "hint": "Filter by service type"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_exploit_modules",
+   "label": "list exploit modules",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "List all Metasploit exploit modules (remote, local, privilege escalation).",
+   "fields": [
+    {
+     "name": "category",
+     "type": "text",
+     "required": true,
+     "default": "remote",
+     "enum": [
+      "remote",
+      "local",
+      "priv",
+      "priviledge_escalation",
+      "web",
+      "dos"
+     ],
+     "hint": "Exploit category"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Maximum number of results"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": "windows",
+     "enum": [
+      "windows",
+      "linux",
+      "unix",
+      "osx",
+      "android",
+      "bsd",
+      "solaris",
+      "java",
+      "python",
+      "php",
+      "ruby",
+      "nodejs"
+     ],
+     "hint": "Target platform"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_exploits",
+   "label": "list exploits",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Search and list available Metasploit exploit modules by keyword, CVE, platform, or service.",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Search term: vulnerability name, CVE ID, platform, or service (e.g., 'ms17_010', 'windows', 'smb')"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Maximum number of results to return"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": "windows",
+     "enum": [
+      "windows",
+      "linux",
+      "android",
+      "unix",
+      "osx",
+      "apple_ios",
+      "bsd",
+      "solaris",
+      "hpux",
+      "aix",
+      "netware",
+      "freebsd",
+      "openbsd",
+      "chrome",
+      "nodejs",
+      "java",
+      "python",
+      "ruby",
+      "php",
+      "unixware",
+      "irix",
+      "digital_unix",
+      "cisco",
+      "firefox",
+      "mysql",
+      "postgresql",
+      "mssql",
+      "oracle",
+      "http",
+      "ssh",
+      "ftp",
+      "telnet",
+      "smb",
+      "dns",
+      "ldap",
+      "rdp",
+      "vnc",
+      "pop3",
+      "imap",
+      "nntp",
+      "mongodb",
+      "elasticsearch"
+     ],
+     "hint": "Filter by target platform"
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "required": false,
+     "default": "exploit",
+     "enum": [
+      "exploit",
+      "auxiliary",
+      "post",
+      "payload"
+     ],
+     "hint": "Filter by module type"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_listeners",
+   "label": "list listeners",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Show all active Metasploit handlers and background jobs.",
+   "fields": []
+  },
+  {
+   "server": "metasploit",
+   "action": "list_payloads",
+   "label": "list payloads",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "List available Metasploit payload modules with optional platform and architecture filtering.",
+   "fields": [
+    {
+     "name": "arch",
+     "type": "text",
+     "required": false,
+     "default": "x86",
+     "enum": [
+      "x86",
+      "x64",
+      "x86_64",
+      "armle",
+      "aarch64",
+      "mipsle",
+      "mipsbe",
+      "ppc",
+      "ppc64",
+      "sparc",
+      "java",
+      "python",
+      "dalvik"
+     ],
+     "hint": "Architecture"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Maximum number of results to return"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": "windows",
+     "enum": [
+      "windows",
+      "linux",
+      "android",
+      "unix",
+      "osx",
+      "bsd",
+      "solaris",
+      "java",
+      "python",
+      "php",
+      "ruby",
+      "nodejs"
+     ],
+     "hint": "Target platform"
+    },
+    {
+     "name": "query",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Search term (e.g., 'meterpreter', 'staged', 'reverse')"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "list_post_modules",
+   "label": "list post modules",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List all Metasploit post-exploitation modules.",
+   "fields": [
+    {
+     "name": "category",
+     "type": "text",
+     "required": true,
+     "default": "gather",
+     "enum": [
+      "gather",
+      "escalate",
+      "persist",
+      "dump",
+      "enum",
+      "exfil",
+      "privesc",
+      "lateral_movement",
+      "collection",
+      " Recon"
+     ],
+     "hint": "Post-exploitation category"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Maximum number of results"
+    },
+    {
+     "name": "os",
+     "type": "text",
+     "required": false,
+     "default": "windows",
+     "enum": [
+      "windows",
+      "linux",
+      "unix",
+      "osx",
+      "android",
+      "multi"
+     ],
+     "hint": "Target OS"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "run_auxiliary_module",
+   "label": "run auxiliary module",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Run any Metasploit auxiliary module (scanner, brute-forcer, fuzzer, admin) with custom options.",
+   "fields": [
+    {
+     "name": "module_path",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Full auxiliary module path. Examples: 'auxiliary/scanner/smb/smb_version', 'auxiliary/scanner/ssh/ssh_login', 'auxiliary/scanner/http/http_version', 'auxiliary/"
+    },
+    {
+     "name": "rhosts",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "RHOSTS \u2014 target host(s), IP range, or CIDR"
+    },
+    {
+     "name": "options",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Additional module options as key-value pairs (e.g. {\"RPORT\": \"22\", \"USER_FILE\": \"/path/users.txt\"})"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "run_exploit",
+   "label": "run exploit",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Configure and execute any Metasploit exploit against a target. Runs as a background job (exploit -j) so the handler stays alive even when the exploit component times out. Automatically detects incompa",
+   "fields": [
+    {
+     "name": "exploit_path",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Full exploit module path. Examples: 'exploit/windows/smb/ms17_010_eternalblue', 'exploit/multi/http/drupal_drupageddon', 'exploit/unix/ftp/vsftpd_234_backdoor',"
+    },
+    {
+     "name": "target_host",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "RHOSTS \u2014 target IP address or hostname"
+    },
+    {
+     "name": "check_first",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Run the module's check command before exploiting to verify vulnerability"
+    },
+    {
+     "name": "lhost",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "LHOST \u2014 your listening IP (attacker machine reachable by target)"
+    },
+    {
+     "name": "lport",
+     "type": "number",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "LPORT \u2014 your listening port"
+    },
+    {
+     "name": "options",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Additional module options as key-value pairs. Use this for module-specific options like TARGETURI, USERNAME, PASSWORD, DBNAME, FILEPATH, etc. Example: {\"TARGETU"
+    },
+    {
+     "name": "payload",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Payload module path. If incompatible with the exploit, a compatible payload is chosen automatically. Examples: 'windows/x64/meterpreter/reverse_tcp', 'linux/x86"
+    },
+    {
+     "name": "target_port",
+     "type": "number",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "RPORT \u2014 target port (leave unset to use the module default)"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "run_post_module",
+   "label": "run post module",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Execute post-exploitation modules against existing sessions.",
+   "fields": [
+    {
+     "name": "module_path",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Post module path. Examples: 'post/windows/gather/hashdump', 'post/windows/gather/enum_logged_on_users', 'post/linux/gather/enum_configs', 'post/multi/gather/env"
+    },
+    {
+     "name": "session_id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Active MSF session ID to run post module against"
+    },
+    {
+     "name": "options",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Additional module options as key-value pairs"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "send_session_command",
+   "label": "send session command",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Run a shell command in an active shell or Meterpreter session.",
+   "fields": [
+    {
+     "name": "command",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Command to execute in the session shell"
+    },
+    {
+     "name": "session_id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Active session ID"
+    },
+    {
+     "name": "max_reads",
+     "type": "number",
+     "required": false,
+     "default": 4,
+     "enum": null,
+     "hint": "Maximum read polls after command write"
+    },
+    {
+     "name": "wait_ms",
+     "type": "number",
+     "required": false,
+     "default": 900,
+     "enum": null,
+     "hint": "Delay before reading output buffer (milliseconds)"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "start_listener",
+   "label": "start listener",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Create a new multi/handler to receive reverse connections from payloads.",
+   "fields": [
+    {
+     "name": "lhost",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "LHOST \u2014 listening IP (your attacker machine)"
+    },
+    {
+     "name": "lport",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "LPORT \u2014 listening port"
+    },
+    {
+     "name": "payload",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Payload type matching what the target will send back. Examples: 'windows/x64/meterpreter/reverse_tcp', 'linux/x86/meterpreter/reverse_tcp', 'php/meterpreter/rev"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "stop_job",
+   "label": "stop job",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Terminate any running job or handler by job ID.",
+   "fields": [
+    {
+     "name": "job_id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Job ID to terminate"
+    }
+   ]
+  },
+  {
+   "server": "metasploit",
+   "action": "terminate_session",
+   "label": "terminate session",
+   "category": "Exploitation",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Forcefully end an active session.",
+   "fields": [
+    {
+     "name": "session_id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Session ID to terminate"
+    }
+   ]
+  },
+  {
+   "server": "payload_generator",
+   "action": "generate_payloads",
+   "label": "generate payloads",
+   "category": "Exploitation",
+   "needs": "Vulnerability type",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Generate security test payloads for a specific vulnerability type. Uses local Ollama LLM if configured (CVE-context-aware), falls back to a curated static library. Returns both static and AI-generated",
+   "fields": [
+    {
+     "name": "vuln_type",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Vulnerability type"
+    },
+    {
+     "name": "count",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Number of payloads to return"
+    },
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional CVE ID for targeted payload generation (e.g., CVE-2021-44228)"
+    },
+    {
+     "name": "target_context",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Optional context: describe the target (e.g., 'login form on PHP Laravel app')"
+    },
+    {
+     "name": "use_ai",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Whether to use Ollama LLM for AI-generated payloads (requires OLLAMA_REMOTE_URL)"
+    }
+   ]
+  },
+  {
+   "server": "payload_generator",
+   "action": "generate_wordlist",
+   "label": "generate wordlist",
+   "category": "Exploitation",
+   "needs": "Vulnerability type",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Generate a security wordlist file for fuzzing. Combines static payloads for the specified vuln types and optionally adds AI-generated variants. Returns a newline-delimited wordlist string.",
+   "fields": [
+    {
+     "name": "vuln_types",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of vulnerability types to include in wordlist"
+    },
+    {
+     "name": "deduplicate",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Remove duplicate payloads"
+    },
+    {
+     "name": "include_ai",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Whether to request AI-augmented payloads"
+    }
+   ]
+  },
+  {
+   "server": "payload_generator",
+   "action": "list_vuln_types",
+   "label": "list vuln types",
+   "category": "Exploitation",
+   "needs": "Vulnerability type",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List all supported vulnerability types and their descriptions.",
+   "fields": []
+  },
+  {
+   "server": "crack",
+   "action": "crack_hash",
+   "label": "crack hash",
+   "category": "Password Cracking",
+   "needs": "Hash(es)",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "OFFENSIVE: run a time-boxed wordlist attack (John the Ripper) against one or more password hashes. Only runs when the server operator has enabled SOCIS_AGENT_ALLOW_OFFENSIVE. Format is auto-detected u",
+   "fields": [
+    {
+     "name": "hashes",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Hash(es) to crack: one 'user:hash' (or bare hash) per line, or a list of such lines"
+    },
+    {
+     "name": "format",
+     "type": "text",
+     "required": false,
+     "default": "auto",
+     "enum": null,
+     "hint": "John format name, or 'auto' to let John detect it"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Hard time limit in seconds for this run"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "rockyou.txt",
+     "enum": null,
+     "hint": "Wordlist filename in the wordlists dir (default rockyou.txt)"
+    }
+   ]
+  },
+  {
+   "server": "crack",
+   "action": "list_formats",
+   "label": "list formats",
+   "category": "Password Cracking",
+   "needs": "Hash(es)",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List the hash format names John the Ripper supports for crack_hash's 'format' argument in this platform (a curated subset covering NTLM/AD, Kerberos, common web-app and DB hashes).",
+   "fields": []
+  },
+  {
+   "server": "secrets",
+   "action": "scan_content",
+   "label": "scan content",
+   "category": "Secrets Scanning",
+   "needs": "File Content",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan a single piece of text (file content or a pasted snippet) for known secret patterns: AWS/GitHub/GitLab/Slack/Stripe/OpenAI/Anthropic/Google API keys, PEM private keys, hardcoded passwords, databa",
+   "fields": [
+    {
+     "name": "content",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The file content or snippet to scan"
+    },
+    {
+     "name": "filename",
+     "type": "text",
+     "required": false,
+     "default": "pasted-content",
+     "enum": null,
+     "hint": "Optional filename/path to label findings with"
+    }
+   ]
+  },
+  {
+   "server": "secrets",
+   "action": "scan_repo_snapshot",
+   "label": "scan repo snapshot",
+   "category": "Secrets Scanning",
+   "needs": "File Content",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan MULTIPLE files at once for secrets \u2014 pass a dict mapping file path to its content (e.g. from an uploaded repo snapshot or a set of config files) instead of calling scan_content once per file.",
+   "fields": [
+    {
+     "name": "files",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Mapping of file path -> file content (string values)"
+    }
+   ]
+  },
+  {
+   "server": "cisa_kev",
+   "action": "check_kev",
+   "label": "check kev",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Check whether a specific CVE is listed in the CISA Known Exploited Vulnerabilities (KEV) catalog. Returns full KEV entry if found, including required remediation date and ransomware campaign associati",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE identifier (e.g. CVE-2021-44228)"
+    }
+   ]
+  },
+  {
+   "server": "cisa_kev",
+   "action": "get_kev_stats",
+   "label": "get kev stats",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get summary statistics of the current CISA KEV catalog: total count, most recent additions, top vendors, ransomware-associated count.",
+   "fields": [
+    {
+     "name": "top_n",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Number of top vendors to return"
+    }
+   ]
+  },
+  {
+   "server": "cisa_kev",
+   "action": "get_recent_kev",
+   "label": "get recent kev",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get the most recently added CVEs to the CISA KEV catalog.",
+   "fields": [
+    {
+     "name": "days",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "How many days back to look (default 30)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Max entries to return"
+    }
+   ]
+  },
+  {
+   "server": "cisa_kev",
+   "action": "search_kev",
+   "label": "search kev",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Search the CISA KEV catalog by keyword (vendor, product, vulnerability name). Returns matching entries with remediation deadlines.",
+   "fields": [
+    {
+     "name": "keyword",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Search term: vendor name, product, or vulnerability name"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 15,
+     "enum": null,
+     "hint": "Max results to return (default 15, max 50)"
+    },
+    {
+     "name": "ransomware_only",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Filter to only CVEs associated with ransomware campaigns"
+    }
+   ]
+  },
+  {
+   "server": "epss",
+   "action": "epss_priority_analysis",
+   "label": "epss priority analysis",
+   "category": "Threat Intel",
+   "needs": "CVE ID",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Given a list of CVE IDs (comma-separated), return them ranked by EPSS score with exploitation likelihood and remediation priority recommendations.",
+   "fields": [
+    {
+     "name": "cve_ids",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Comma-separated CVE IDs (e.g. CVE-2021-44228,CVE-2022-12345)"
+    }
+   ]
+  },
+  {
+   "server": "epss",
+   "action": "get_epss_score",
+   "label": "get epss score",
+   "category": "Threat Intel",
+   "needs": "CVE ID",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get the EPSS (Exploit Prediction Scoring System) score for a CVE. EPSS estimates the probability that a CVE will be exploited in the wild within the next 30 days. Score range: 0.0\u20131.0 (higher = more l",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE identifier (e.g. CVE-2021-44228)"
+    }
+   ]
+  },
+  {
+   "server": "epss",
+   "action": "get_epss_scores_bulk",
+   "label": "get epss scores bulk",
+   "category": "Threat Intel",
+   "needs": "CVE ID",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get EPSS scores for multiple CVE IDs in a single call.",
+   "fields": [
+    {
+     "name": "cve_ids",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Comma-separated CVE IDs (max 100, e.g. CVE-2021-44228,CVE-2022-12345)"
+    }
+   ]
+  },
+  {
+   "server": "epss",
+   "action": "get_high_epss_cves",
+   "label": "get high epss cves",
+   "category": "Threat Intel",
+   "needs": "CVE ID",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get CVEs with the highest EPSS scores (most likely to be exploited). Useful for prioritizing patching and remediation work.",
+   "fields": [
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Max results (default 20, max 100)"
+    },
+    {
+     "name": "min_score",
+     "type": "number",
+     "required": false,
+     "default": 0.5,
+     "enum": null,
+     "hint": "Minimum EPSS score threshold (0.0-1.0, default 0.5)"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "batch_get_exploits",
+   "label": "batch get exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Fetch up to 50 exploits by their EDB-IDs in a single request.",
+   "fields": [
+    {
+     "name": "ids",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of EDB-IDs (max 50)"
+    },
+    {
+     "name": "include_code",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Fetch exploit code for each entry"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "compare_exploits",
+   "label": "compare exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Compare 2\u201310 exploits side-by-side: platform, type, date, verified, CVEs, tags.",
+   "fields": [
+    {
+     "name": "ids",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "List of 2\u201310 EDB-IDs to compare"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "export_search_results",
+   "label": "export search results",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Export Exploit-DB search results as structured JSON or CSV.",
+   "fields": [
+    {
+     "name": "format",
+     "type": "text",
+     "required": false,
+     "default": "json",
+     "enum": [
+      "json",
+      "csv"
+     ],
+     "hint": "Output format: json or csv"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 50,
+     "enum": null,
+     "hint": "Max results (default 50, max 200)"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Platform filter"
+    },
+    {
+     "name": "query",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Search keyword (blank = all)"
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit type filter"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "find_by_cve",
+   "label": "find by cve",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all Exploit-DB exploits linked to a specific CVE ID.",
+   "fields": [
+    {
+     "name": "cve",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID (e.g. CVE-2021-44228)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_exploit",
+   "label": "get exploit",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Fetch a single Exploit-DB entry by its numeric EDB-ID. Optionally retrieves the raw exploit code from the GitLab mirror.",
+   "fields": [
+    {
+     "name": "id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit-DB numeric ID (EDB-ID)"
+    },
+    {
+     "name": "include_code",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": "Fetch raw exploit source code"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_exploit_timeline",
+   "label": "get exploit timeline",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Return a chronological timeline of exploits matching a query \u2014 shows exploit velocity over time.",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Keyword, software, or CVE"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_platform_statistics",
+   "label": "get platform statistics",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return exploit count, type breakdown, and top authors for a specific platform.",
+   "fields": [
+    {
+     "name": "platform",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Platform name"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_recent_exploits",
+   "label": "get recent exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Return the most recently published exploits from Exploit-DB.",
+   "fields": [
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results (default 10, max 50)"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_related_exploits",
+   "label": "get related exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Find exploits related to a given EDB-ID by shared platform, author, CVEs, or tags.",
+   "fields": [
+    {
+     "name": "id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Reference EDB-ID"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "relation_type",
+     "type": "text",
+     "required": false,
+     "default": "platform",
+     "enum": [
+      "platform",
+      "author",
+      "cve",
+      "tags"
+     ],
+     "hint": "Relation: platform, author, cve, tags"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_statistics",
+   "label": "get statistics",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return aggregate statistics about the local Exploit-DB dataset.",
+   "fields": []
+  },
+  {
+   "server": "exploitdb",
+   "action": "get_trending_exploits",
+   "label": "get trending exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Return recently published exploits within the past N days.",
+   "fields": [
+    {
+     "name": "days",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Lookback window in days (default 30)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results (default 10, max 50)"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_by_author",
+   "label": "search by author",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all exploits published by a specific author.",
+   "fields": [
+    {
+     "name": "author",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Author name (partial match)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_by_date_range",
+   "label": "search by date range",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return exploits published within a date range.",
+   "fields": [
+    {
+     "name": "end_date",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "End date YYYY-MM-DD"
+    },
+    {
+     "name": "start_date",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Start date YYYY-MM-DD"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Platform filter"
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit type filter"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_by_platform",
+   "label": "search by platform",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search exploits targeting a specific platform (e.g. linux, windows, php, java).",
+   "fields": [
+    {
+     "name": "platform",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Platform name"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit type filter"
+    },
+    {
+     "name": "verified",
+     "type": "bool",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Verified only"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_by_tags",
+   "label": "search by tags",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search exploits by vulnerability tags (e.g. rce, xss, sql injection, lfi).",
+   "fields": [
+    {
+     "name": "tags",
+     "type": "list",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Tag list"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "match_all",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Require all tags to match (AND)"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_by_type",
+   "label": "search by type",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search exploits by exploit type: webapps, remote, local, dos, hardware.",
+   "fields": [
+    {
+     "name": "type",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit type (webapps, remote, local, dos, hardware)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Platform filter"
+    },
+    {
+     "name": "verified",
+     "type": "bool",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Verified only"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "search_exploits",
+   "label": "search exploits",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Search the Exploit-DB database (47k+ exploits) by keyword, CVE ID, platform, exploit type, author, and date range. Returns exploit ID, title, type, platform, verified status, CVEs, and URL.",
+   "fields": [
+    {
+     "name": "author",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Author name filter"
+    },
+    {
+     "name": "cve",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID to filter by (e.g. CVE-2021-44228)"
+    },
+    {
+     "name": "end_date",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Latest publish date (YYYY-MM-DD)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results (default 10, max 100)"
+    },
+    {
+     "name": "offset",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Pagination offset"
+    },
+    {
+     "name": "platform",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Platform filter (php, windows, linux, java\u2026)"
+    },
+    {
+     "name": "query",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Keyword, software name, or CVE ID"
+    },
+    {
+     "name": "start_date",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Earliest publish date (YYYY-MM-DD)"
+    },
+    {
+     "name": "type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Exploit type: webapps, remote, local, dos, hardware"
+    },
+    {
+     "name": "verified",
+     "type": "bool",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Only include verified exploits"
+    }
+   ]
+  },
+  {
+   "server": "exploitdb",
+   "action": "validate_exploit_id",
+   "label": "validate exploit id",
+   "category": "Threat Intel",
+   "needs": "CVE / platform / keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Check whether an EDB-ID exists in the local database and return its basic metadata.",
+   "fields": [
+    {
+     "name": "id",
+     "type": "number",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "EDB-ID to validate"
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "generate_layer",
+   "label": "generate layer",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Generate an ATT&CK Navigator JSON layer for enterprise, mobile, or ics domain. Scope: 'all', 'group', 'tactic', 'platform'. Upload to https://mitre-attack.github.io/attack-navigator/.",
+   "fields": [
+    {
+     "name": "scope",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": [
+      "all",
+      "group",
+      "tactic",
+      "platform"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "color",
+     "type": "text",
+     "required": false,
+     "default": "#0ff0fc",
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "name",
+     "type": "text",
+     "required": false,
+     "default": "SOCIS Layer",
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "value",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Scope value (group name/ID, tactic shortname, or platform name). Ignored for 'all'."
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_campaigns",
+   "label": "get all campaigns",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK campaigns. Enterprise domain has the most campaigns; mobile/ics may have fewer.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_datasources",
+   "label": "get all datasources",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK data sources and data components used for detection.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_groups",
+   "label": "get all groups",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK groups (threat actors) with IDs, names, aliases. Enterprise and Mobile domains have groups; ICS groups are limited.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_mitigations",
+   "label": "get all mitigations",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK mitigations. Supports enterprise, mobile, and ics domains.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_software",
+   "label": "get all software",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK software (malware and tools). Supports enterprise, mobile, and ics domains.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_subtechniques",
+   "label": "get all subtechniques",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all sub-techniques across all parent techniques for the selected domain.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_tactics",
+   "label": "get all tactics",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all ATT&CK tactics (kill-chain phases). Enterprise has 14, Mobile has 14, ICS has 12. Use the domain parameter to select.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_all_techniques",
+   "label": "get all techniques",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all parent techniques with ID, name, tactics, and platforms. Supports enterprise, mobile, and ics domains.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_campaigns_using_technique",
+   "label": "get campaigns using technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all campaigns that used a specific technique.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_data_stats",
+   "label": "get data stats",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return statistics about a loaded ATT&CK dataset. Use domain to select: 'enterprise' (default), 'mobile', or 'ics'.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": "ATT&CK domain: enterprise, mobile, or ics"
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_datasources_detecting_technique",
+   "label": "get datasources detecting technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return the data sources and components that can detect a specific technique.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_group_by_name",
+   "label": "get group by name",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Find a group by exact name or alias (e.g. 'APT29', 'Cozy Bear', 'Lazarus Group').",
+   "fields": [
+    {
+     "name": "name",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Group name or alias"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_groups_using_technique",
+   "label": "get groups using technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all groups known to use a specific technique ID.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_mitigations_for_technique",
+   "label": "get mitigations for technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all mitigations that address a specific technique.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_software_used_by_group",
+   "label": "get software used by group",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all software (malware/tools) used by a group.",
+   "fields": [
+    {
+     "name": "group_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "ATT&CK group ID or name"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_software_using_technique",
+   "label": "get software using technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all software known to use a specific technique.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_subtechniques_of_technique",
+   "label": "get subtechniques of technique",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all sub-techniques of a parent technique by ID.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Parent technique ID, e.g. T1055"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_technique_by_id",
+   "label": "get technique by id",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get full details of a technique or sub-technique by its ATT&CK ID. Works across enterprise, mobile, and ics domains.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "ATT&CK technique ID, e.g. T1055, T1055.001, T0802"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_technique_tactics",
+   "label": "get technique tactics",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return the list of tactics that a given technique belongs to.",
+   "fields": [
+    {
+     "name": "technique_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_techniques_by_platform",
+   "label": "get techniques by platform",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return techniques targeting a platform. Enterprise: Windows/macOS/Linux/Cloud etc. Mobile: Android/iOS. ICS: Field Controller/Engineering Workstation/Historian/HMI etc.",
+   "fields": [
+    {
+     "name": "platform",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Platform name"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "include_subtechniques",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_techniques_by_tactic",
+   "label": "get techniques by tactic",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all techniques belonging to a specific tactic shortname (e.g. 'initial-access', 'impact', 'inhibit-response-function' for ICS). Specify domain to search mobile or ICS tactics.",
+   "fields": [
+    {
+     "name": "tactic",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Tactic shortname"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "include_subtechniques",
+     "type": "bool",
+     "required": false,
+     "default": true,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_techniques_mitigated_by",
+   "label": "get techniques mitigated by",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all techniques mitigated by a given mitigation ID (e.g. M1036).",
+   "fields": [
+    {
+     "name": "mitigation_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "ATT&CK mitigation ID, e.g. M1036"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "get_techniques_used_by_group",
+   "label": "get techniques used by group",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return all techniques used by a group, identified by ATT&CK group ID (e.g. G0016) or name.",
+   "fields": [
+    {
+     "name": "group_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "ATT&CK group ID (G0016) or group name (APT29)"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "search_groups",
+   "label": "search groups",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search groups by a keyword in name, aliases, or description.",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "search_software",
+   "label": "search software",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search software by name or description keyword.",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "mitre",
+   "action": "search_techniques",
+   "label": "search techniques",
+   "category": "Threat Intel",
+   "needs": "Technique / Group / Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search techniques by name or description keyword across the selected ATT&CK domain (enterprise, mobile, or ics).",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Search keyword"
+    },
+    {
+     "name": "domain",
+     "type": "text",
+     "required": false,
+     "default": "enterprise",
+     "enum": [
+      "enterprise",
+      "mobile",
+      "ics"
+     ],
+     "hint": ""
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "poc_index",
+   "action": "get_exploitdb_entry",
+   "label": "get exploitdb entry",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "critical",
+   "offensive": false,
+   "hint": "Look up an ExploitDB entry by EDB ID or search by CVE/keyword. Returns exploit title, type, platform, author, and direct link.",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID, EDB ID (e.g. EDB-51574), or keyword"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results (default 10)"
+    }
+   ]
+  },
+  {
+   "server": "poc_index",
+   "action": "poc_risk_summary",
+   "label": "poc risk summary",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Generate a PoC risk summary for a CVE: checks ExploitDB and GitHub for public exploits, then returns a combined risk assessment with exploitation difficulty rating.",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID to assess"
+    }
+   ]
+  },
+  {
+   "server": "poc_index",
+   "action": "search_github_poc",
+   "label": "search github poc",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Search GitHub for public PoC exploit repositories for a CVE ID. Returns repo name, stars, description, and URL. High star counts indicate widely-used/reliable PoCs.",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID (e.g. CVE-2021-44228)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max repos to return (default 10)"
+    }
+   ]
+  },
+  {
+   "server": "poc_index",
+   "action": "search_poc",
+   "label": "search poc",
+   "category": "Threat Intel",
+   "needs": "CVE ID or Keyword",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Search for public Proof-of-Concept (PoC) exploits for a CVE ID or keyword. Queries ExploitDB (official CSV) and GitHub for PoC repositories. Returns exploit titles, types, links, and publication dates",
+   "fields": [
+    {
+     "name": "query",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE ID (e.g. CVE-2021-44228) or vulnerability keyword"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results (default 10, max 25)"
+    }
+   ]
+  },
+  {
+   "server": "cve",
+   "action": "cpe_search",
+   "label": "cpe search",
+   "category": "Vulnerability Scan",
+   "needs": "CVE ID or Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search CVEs affecting a specific CPE (Common Platform Enumeration) product.",
+   "fields": [
+    {
+     "name": "cpe",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CPE string (e.g. 'cpe:2.3:a:apache:log4j:2.14.1:*:*:*:*:*:*:*')"
+    }
+   ]
+  },
+  {
+   "server": "cve",
+   "action": "get_severity",
+   "label": "get severity",
+   "category": "Vulnerability Scan",
+   "needs": "CVE ID or Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Get the CVSS severity and score for a CVE ID.",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "cve",
+   "action": "lookup_cve",
+   "label": "lookup cve",
+   "category": "Vulnerability Scan",
+   "needs": "CVE ID or Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Look up a specific CVE by ID from the National Vulnerability Database (NVD). Returns severity, CVSS score, description, references, and affected software.",
+   "fields": [
+    {
+     "name": "cve_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "CVE identifier (e.g. CVE-2021-44228)"
+    }
+   ]
+  },
+  {
+   "server": "cve",
+   "action": "search_cves",
+   "label": "search cves",
+   "category": "Vulnerability Scan",
+   "needs": "CVE ID or Keyword",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Search CVEs by keyword, product, or vendor. Returns up to 20 matching CVEs sorted by severity.",
+   "fields": [
+    {
+     "name": "keyword",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Search term (product name, vendor, or technology)"
+    },
+    {
+     "name": "limit",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Max results to return"
+    },
+    {
+     "name": "severity",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Filter by severity: CRITICAL, HIGH, MEDIUM, LOW"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "list_templates",
+   "label": "list templates",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "low",
+   "offensive": false,
+   "hint": "List available Nuclei template categories.",
+   "fields": [
+    {
+     "name": "category",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Filter by category (e.g. cves, exposures, misconfiguration)"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_cve_scan",
+   "label": "nuclei cve scan",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run Nuclei with only CVE templates against a target.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "year",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "CVE year filter (e.g. 2024 for CVE-2024-*)"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_dns_scan",
+   "label": "nuclei dns scan",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run DNS vulnerability scan (dns zone transfer, subdomains, takeovers).",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "template_type",
+     "type": "text",
+     "required": false,
+     "default": "zone-transfer",
+     "enum": [
+      "zone-transfer",
+      "takeover",
+      "cname",
+      "a",
+      "mx",
+      "ns"
+     ],
+     "hint": "DNS template type"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_exposed_scan",
+   "label": "nuclei exposed scan",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan for exposed files, configs, and sensitive data (exposures, files, configs).",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "template_type",
+     "type": "text",
+     "required": false,
+     "default": "exposures",
+     "enum": [
+      "exposures",
+      "files",
+      "misconfiguration",
+      "vulnerabilities"
+     ],
+     "hint": "Template type to scan"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_scan",
+   "label": "nuclei scan",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run Nuclei vulnerability scanner against a target URL or IP. Returns structured findings with CVEs and severity.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL or IP (e.g. https://example.com or 192.168.1.1)"
+    },
+    {
+     "name": "concurrency",
+     "type": "number",
+     "required": false,
+     "default": 25,
+     "enum": null,
+     "hint": "Number of templates to run concurrently (nuclei -c flag)"
+    },
+    {
+     "name": "exclude_tags",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Exclude templates with these tags, comma-separated e.g. dos,fuzz"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated e.g. 'Authorization: Bearer token'"
+    },
+    {
+     "name": "no_interactsh",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Disable interactsh OOB server (use for isolated networks)"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/SOCKS5 proxy URL e.g. http://127.0.0.1:8080"
+    },
+    {
+     "name": "rate_limit",
+     "type": "number",
+     "required": false,
+     "default": 100,
+     "enum": null,
+     "hint": "Max requests per second"
+    },
+    {
+     "name": "retries",
+     "type": "number",
+     "required": false,
+     "default": 1,
+     "enum": null,
+     "hint": "Number of retries for failed requests"
+    },
+    {
+     "name": "severity",
+     "type": "text",
+     "required": false,
+     "default": "critical,high,medium",
+     "enum": [
+      "critical,high,medium,low,info",
+      "critical,high,medium",
+      "critical,high",
+      "critical",
+      "high,medium,low",
+      "all"
+     ],
+     "hint": "Filter by severity"
+    },
+    {
+     "name": "templates",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Template path or tag (e.g. 'cves/' or 'exposures/' or '-tags cve')"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 600,
+     "enum": null,
+     "hint": "Scan timeout in seconds (60-1800)"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_ssl_scan",
+   "label": "nuclei ssl scan",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan SSL/TLS configurations for vulnerabilities.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    },
+    {
+     "name": "template_type",
+     "type": "text",
+     "required": false,
+     "default": "heartbleed",
+     "enum": [
+      "heartbleed",
+      "cancer",
+      "expire",
+      "weak",
+      "self-signed"
+     ],
+     "hint": "SSL template type"
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_tech_detect",
+   "label": "nuclei tech detect",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Detect technologies running on a target using Nuclei tech templates.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": ""
+    }
+   ]
+  },
+  {
+   "server": "nuclei",
+   "action": "nuclei_update_templates",
+   "label": "nuclei update templates",
+   "category": "Vulnerability Scan",
+   "needs": "Network Target",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Update Nuclei template definitions to latest version.",
+   "fields": []
+  },
+  {
+   "server": "cve_lite",
+   "action": "cve_lite_advisories_sync",
+   "label": "cve lite advisories sync",
+   "category": "Web Attacks",
+   "needs": "Project path",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Sync the OSV advisory database locally for offline scanning. Downloads ~217K advisories in under 10 seconds and stores them in a SQLite file. Use the output path with cve_lite_scan offline=true for ai",
+   "fields": [
+    {
+     "name": "output_path",
+     "type": "text",
+     "required": false,
+     "default": "/tmp/cve-lite-advisories.sqlite3",
+     "enum": null,
+     "hint": "Path where the SQLite advisory DB will be saved. Defaults to /tmp/cve-lite-advisories.sqlite3."
+    }
+   ]
+  },
+  {
+   "server": "cve_lite",
+   "action": "cve_lite_scan",
+   "label": "cve lite scan",
+   "category": "Web Attacks",
+   "needs": "Project path",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Scan a JavaScript/TypeScript project directory for known dependency vulnerabilities using OWASP cve-lite-cli with OSV advisory data. Returns structured JSON with findings, severity levels, CVE aliases",
+   "fields": [
+    {
+     "name": "project_path",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Absolute path to the project directory containing package.json or lockfile."
+    },
+    {
+     "name": "all",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Include vulnerabilities in all dependencies (including dev). Default false (prod-focused)."
+    },
+    {
+     "name": "fail_on",
+     "type": "text",
+     "required": false,
+     "default": "critical",
+     "enum": null,
+     "hint": "Treat findings at or above this severity as non-zero exit (informational, does not cause error). Values: none, low, medium, high, critical."
+    },
+    {
+     "name": "min_severity",
+     "type": "text",
+     "required": false,
+     "default": "medium",
+     "enum": null,
+     "hint": "Minimum severity to report: none, low, medium, high, critical."
+    },
+    {
+     "name": "offline",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Use a local offline SQLite advisory database instead of fetching from OSV."
+    },
+    {
+     "name": "offline_db",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Path to local OSV SQLite database for offline scanning. Required when offline=true."
+    },
+    {
+     "name": "only_used",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Only report vulnerabilities in packages that are actually imported in source files."
+    },
+    {
+     "name": "osv_url",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "Custom OSV API URL (optional, for air-gapped or custom OSV deployments)."
+    },
+    {
+     "name": "prod_only",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Only scan production dependencies (exclude devDependencies)."
+    },
+    {
+     "name": "usage",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Include usage analysis showing which source files import vulnerable packages."
+    }
+   ]
+  },
+  {
+   "server": "cve_lite",
+   "action": "cve_lite_version",
+   "label": "cve lite version",
+   "category": "Web Attacks",
+   "needs": "Project path",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Return the installed version of cve-lite-cli.",
+   "fields": []
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_filter_codes",
+   "label": "ffuf filter codes",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Filter by HTTP status codes.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "filter_codes",
+     "type": "text",
+     "required": false,
+     "default": "302,404",
+     "enum": null,
+     "hint": "Codes to filter OUT (e.g., 302,404)"
+    },
+    {
+     "name": "show_codes",
+     "type": "text",
+     "required": false,
+     "default": "200,204,301,302,307,401,403",
+     "enum": null,
+     "hint": "Codes to SHOW (e.g., 200,301)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist dropdown"
+    }
+   ]
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_fuzz",
+   "label": "ffuf fuzz",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Fuzz directories and files on a web target using ffuf.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL (FUZZ placeholder inserted automatically)"
+    },
+    {
+     "name": "data",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "POST body data (for POST fuzzing) e.g. username=FUZZ&password=test"
+    },
+    {
+     "name": "extensions",
+     "type": "text",
+     "required": false,
+     "default": "php,html,txt",
+     "enum": null,
+     "hint": "Comma-separated file extensions to try"
+    },
+    {
+     "name": "filter_codes",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Hide responses with these HTTP status codes e.g. 404,400"
+    },
+    {
+     "name": "filter_size",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Hide responses with this size in bytes (comma-separated for multiple) e.g. 1234,5678"
+    },
+    {
+     "name": "filter_words",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Hide responses with this word count e.g. 42"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated e.g. 'Authorization: Bearer token'"
+    },
+    {
+     "name": "match_codes",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Show only responses with these HTTP status codes e.g. 200,301,302"
+    },
+    {
+     "name": "method",
+     "type": "text",
+     "required": false,
+     "default": "GET",
+     "enum": null,
+     "hint": "HTTP method: GET, POST, PUT, DELETE, HEAD"
+    },
+    {
+     "name": "rate",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Max requests per second (0 = unlimited)"
+    },
+    {
+     "name": "recursion",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Enable recursive fuzzing"
+    },
+    {
+     "name": "recursion_depth",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Max recursion depth (1-5)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads (1-100)"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 10,
+     "enum": null,
+     "hint": "Per-request timeout in seconds"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist to use (dropdown)"
+    }
+   ]
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_list_wordlists",
+   "label": "ffuf list wordlists",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "List available wordlists with sizes.",
+   "fields": []
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_parameters",
+   "label": "ffuf parameters",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Fuzz GET parameters (query strings).",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with FUZZ placeholder"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist dropdown"
+    }
+   ]
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_recursive",
+   "label": "ffuf recursive",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Recursive directory fuzzing.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target base URL"
+    },
+    {
+     "name": "depth",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Recursion depth (1-5)"
+    },
+    {
+     "name": "extensions",
+     "type": "text",
+     "required": false,
+     "default": "php,html,txt",
+     "enum": null,
+     "hint": "File extensions"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist dropdown"
+    }
+   ]
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_subdomains",
+   "label": "ffuf subdomains",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Discover subdomains using ffuf.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target domain (e.g., example.com)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist dropdown"
+    }
+   ]
+  },
+  {
+   "server": "ffuf",
+   "action": "ffuf_vhost",
+   "label": "ffuf vhost",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Discover virtual hosts (Host header fuzzing).",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Base domain for vhosts"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Concurrent threads"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": [
+      "common",
+      "big",
+      "small",
+      "subdomains",
+      "parameters"
+     ],
+     "hint": "Wordlist dropdown"
+    }
+   ]
+  },
+  {
+   "server": "gobuster",
+   "action": "gobuster_dir",
+   "label": "gobuster dir",
+   "category": "Web Attacks",
+   "needs": "URL or Domain",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Brute-force web directories and files on a target web server using gobuster in dir mode.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL (e.g., http://example.com)"
+    },
+    {
+     "name": "expanded",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Show full URL in output instead of path"
+    },
+    {
+     "name": "extensions",
+     "type": "text",
+     "required": false,
+     "default": "",
+     "enum": null,
+     "hint": "File extensions to check (comma-separated, e.g., php,html,js,txt)"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated e.g. 'Authorization: Bearer token'"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Password for HTTP Basic authentication"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/HTTPS proxy URL e.g. http://127.0.0.1:8080"
+    },
+    {
+     "name": "status_codes",
+     "type": "text",
+     "required": false,
+     "default": "200,204,301,302,307,401,403",
+     "enum": null,
+     "hint": "Status codes to report (default: 200,204,301,302,307,401,403)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Number of concurrent threads"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Username for HTTP Basic authentication"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": null,
+     "hint": "Built-in wordlist name: common (default), big, subdomains, parameters, passwords, usernames."
+    }
+   ]
+  },
+  {
+   "server": "gobuster",
+   "action": "gobuster_dns",
+   "label": "gobuster dns",
+   "category": "Web Attacks",
+   "needs": "URL or Domain",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Enumerate subdomains of a domain using gobuster DNS mode.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target domain (e.g., example.com)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Number of concurrent threads"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "subdomains",
+     "enum": null,
+     "hint": "Built-in wordlist name: subdomains (default for DNS), common, big."
+    }
+   ]
+  },
+  {
+   "server": "gobuster",
+   "action": "gobuster_fuzz",
+   "label": "gobuster fuzz",
+   "category": "Web Attacks",
+   "needs": "URL or Domain",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Generic fuzzing mode using gobuster \u2014 replaces FUZZ placeholder in URL, headers, or body.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "URL with FUZZ placeholder (e.g., http://example.com/page?id=FUZZ)"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP Basic auth password (paired with username)"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/HTTPS proxy URL"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Number of concurrent threads"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP Basic auth username (paired with password)"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "parameters",
+     "enum": null,
+     "hint": "Built-in wordlist name: parameters (default for fuzz), common, big."
+    }
+   ]
+  },
+  {
+   "server": "gobuster",
+   "action": "gobuster_vhost",
+   "label": "gobuster vhost",
+   "category": "Web Attacks",
+   "needs": "URL or Domain",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Enumerate virtual hosts on a web server using gobuster vhost mode.",
+   "fields": [
+    {
+     "name": "domain",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Base domain to append to wordlist entries (e.g., example.com)"
+    },
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL/IP to probe for vhosts (e.g., http://10.10.10.1)"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated"
+    },
+    {
+     "name": "password",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Password for HTTP Basic auth"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/HTTPS proxy URL"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 20,
+     "enum": null,
+     "hint": "Number of concurrent threads"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "username",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Username for HTTP Basic auth"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "common",
+     "enum": null,
+     "hint": "Built-in wordlist name: common (default), big, subdomains."
+    }
+   ]
+  },
+  {
+   "server": "jwt",
+   "action": "analyze_claims",
+   "label": "analyze claims",
+   "category": "Web Attacks",
+   "needs": "JWT token",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Analyze JWT claims for security issues \u2014 expiry, audience, issuer validation, sensitive data exposure, privilege indicators.",
+   "fields": [
+    {
+     "name": "token",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The JWT token to analyze"
+    }
+   ]
+  },
+  {
+   "server": "jwt",
+   "action": "decode_jwt",
+   "label": "decode jwt",
+   "category": "Web Attacks",
+   "needs": "JWT token",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Decode a JWT token without verifying the signature \u2014 shows header, payload claims, and basic metadata.",
+   "fields": [
+    {
+     "name": "token",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The JWT token string (three base64url-encoded parts separated by dots)"
+    }
+   ]
+  },
+  {
+   "server": "jwt",
+   "action": "forge_jwt",
+   "label": "forge jwt",
+   "category": "Web Attacks",
+   "needs": "JWT token",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Forge a JWT with a known secret and custom claims \u2014 for authorised security testing.",
+   "fields": [
+    {
+     "name": "secret",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The signing secret/key"
+    },
+    {
+     "name": "algorithm",
+     "type": "text",
+     "required": false,
+     "default": "HS256",
+     "enum": [
+      "HS256",
+      "HS384",
+      "HS512",
+      "none"
+     ],
+     "hint": "Signing algorithm"
+    },
+    {
+     "name": "claims",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "JWT payload claims (e.g. {\"sub\": \"admin\", \"role\": \"admin\"})"
+    },
+    {
+     "name": "header_extra",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Extra header fields to add (e.g. {\"kid\": \"../../../dev/null\"})"
+    }
+   ]
+  },
+  {
+   "server": "jwt",
+   "action": "test_alg_none",
+   "label": "test alg none",
+   "category": "Web Attacks",
+   "needs": "JWT token",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Test if the server accepts a JWT with algorithm set to 'none' \u2014 a critical vulnerability that allows forging tokens without a secret.",
+   "fields": [
+    {
+     "name": "token",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "A valid JWT token to base the attack on"
+    },
+    {
+     "name": "modified_claims",
+     "type": "text",
+     "required": false,
+     "default": {},
+     "enum": null,
+     "hint": "Claims to modify in the forged token (e.g. {\"role\": \"admin\", \"sub\": \"0\"})"
+    }
+   ]
+  },
+  {
+   "server": "jwt",
+   "action": "test_weak_secret",
+   "label": "test weak secret",
+   "category": "Web Attacks",
+   "needs": "JWT token",
+   "risk": "low",
+   "offensive": false,
+   "hint": "Dictionary attack against a JWT's HMAC signature to find a weak signing secret.",
+   "fields": [
+    {
+     "name": "token",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "The JWT token to crack"
+    },
+    {
+     "name": "wordlist",
+     "type": "text",
+     "required": false,
+     "default": "passwords",
+     "enum": null,
+     "hint": "Built-in wordlist name: passwords (default), common, big. The server will also always try a set of well-known common secrets. Leave blank to use built-ins only."
+    }
+   ]
+  },
+  {
+   "server": "nikto",
+   "action": "nikto_scan",
+   "label": "nikto scan",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run a full Nikto web server vulnerability scan. Detects outdated software, dangerous files, misconfigurations, and known CVEs.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL or host (e.g., http://example.com or 192.168.1.1)"
+    },
+    {
+     "name": "auth",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP Basic auth credentials: user:password"
+    },
+    {
+     "name": "evasion",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Evasion technique codes (1-9): 1=Random URI encoding, 2=Directory self-reference, 3=Premature URL ending, 4=Prepend long random string, 5=Fake parameter, 6=TAB "
+    },
+    {
+     "name": "maxtime",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Maximum scan time e.g. 60s, 5m, 1h"
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": 80,
+     "enum": null,
+     "hint": "Port to scan (default: 80 for HTTP, 443 for HTTPS)"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP proxy URL e.g. http://127.0.0.1:8080"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "useragent",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Override User-Agent string"
+    }
+   ]
+  },
+  {
+   "server": "nikto",
+   "action": "nikto_ssl_only",
+   "label": "nikto ssl only",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run Nikto focused on SSL/TLS issues \u2014 expired certs, weak ciphers, insecure redirects, HSTS issues.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target hostname or URL (HTTPS)"
+    },
+    {
+     "name": "auth",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP Basic auth credentials: user:password"
+    },
+    {
+     "name": "evasion",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Evasion technique codes (1-9)"
+    },
+    {
+     "name": "maxtime",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Maximum scan time e.g. 60s, 5m, 1h"
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": 443,
+     "enum": null,
+     "hint": "HTTPS port"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP proxy URL e.g. http://127.0.0.1:8080"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 180,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "useragent",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Override User-Agent string"
+    }
+   ]
+  },
+  {
+   "server": "nikto",
+   "action": "nikto_tuning",
+   "label": "nikto tuning",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run a targeted Nikto scan using tuning options to focus on specific vulnerability categories.",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL or host"
+    },
+    {
+     "name": "auth",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP Basic auth: user:password"
+    },
+    {
+     "name": "evasion",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Evasion technique codes 1-9"
+    },
+    {
+     "name": "maxtime",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Maximum scan time e.g. 60s, 5m"
+    },
+    {
+     "name": "port",
+     "type": "number",
+     "required": false,
+     "default": 80,
+     "enum": null,
+     "hint": "Port to scan"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP proxy URL"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "tuning",
+     "type": "text",
+     "required": false,
+     "default": "1234",
+     "enum": null,
+     "hint": "Nikto tuning codes: 1=Interesting File/Seen in logs, 2=Misconfiguration, 3=Information Disclosure, 4=Injection(XSS/Script/HTML), 5=Remote File Retrieval, 6=Deni"
+    },
+    {
+     "name": "useragent",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Override User-Agent string"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_current_db",
+   "label": "sqlmap current db",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get current database name.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_current_user",
+   "label": "sqlmap current user",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get current database user.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_dump",
+   "label": "sqlmap dump",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Dump data from a table (extract all data).",
+   "fields": [
+    {
+     "name": "database",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Database name"
+    },
+    {
+     "name": "table",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Table name"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_enum_columns",
+   "label": "sqlmap enum columns",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate columns from a table.",
+   "fields": [
+    {
+     "name": "database",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Database name"
+    },
+    {
+     "name": "table",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Table name"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_enum_databases",
+   "label": "sqlmap enum databases",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate databases after finding SQLi. Use target URL or scan_id from sqlmap_scan.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_enum_tables",
+   "label": "sqlmap enum tables",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate tables from a specific database.",
+   "fields": [
+    {
+     "name": "database",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Database name"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_full_chain",
+   "label": "sqlmap full chain",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Complete SQL injection exploitation chain: detect \u2192 if vulnerable, automatically enumerate current DB/user, DBA status, all databases, tables, users, and password hashes in one step. Returns a unified",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL to test (GET or POST)"
+    },
+    {
+     "name": "auth_cred",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP auth credentials: user:password"
+    },
+    {
+     "name": "auth_type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP auth type: Basic, Digest, NTLM"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Session cookie for authenticated scans (optional)"
+    },
+    {
+     "name": "data",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "POST body data (optional)"
+    },
+    {
+     "name": "dbms",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Force backend DBMS e.g. mysql, mssql, postgresql"
+    },
+    {
+     "name": "delay",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Delay between requests in seconds"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated"
+    },
+    {
+     "name": "level",
+     "type": "number",
+     "required": false,
+     "default": 3,
+     "enum": null,
+     "hint": "Test depth 1-5 (5 = most thorough)"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/HTTPS proxy URL"
+    },
+    {
+     "name": "retries",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Connection retries"
+    },
+    {
+     "name": "risk",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Risk level 1-3 (3 = all payloads)"
+    },
+    {
+     "name": "tamper",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Tamper scripts comma-separated e.g. space2comment,between"
+    },
+    {
+     "name": "technique",
+     "type": "text",
+     "required": false,
+     "default": "BEUSTQ",
+     "enum": null,
+     "hint": "Injection techniques (BEUSTQ = all)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 4,
+     "enum": null,
+     "hint": "Concurrent threads 1-10"
+    },
+    {
+     "name": "time_sec",
+     "type": "number",
+     "required": false,
+     "default": 5,
+     "enum": null,
+     "hint": "Delay for time-based blind SQLi (seconds)"
+    },
+    {
+     "name": "timeout_secs",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Connection timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_is_dba",
+   "label": "sqlmap is dba",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Check if current user is DBA.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_os_shell",
+   "label": "sqlmap os shell",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Try to get operating system shell via SQL injection.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_passwords",
+   "label": "sqlmap passwords",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get password hashes from database users. Optionally attempt to crack them using sqlmap's built-in dictionary.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "crack",
+     "type": "bool",
+     "required": false,
+     "default": false,
+     "enum": null,
+     "hint": "Attempt to crack extracted hashes using sqlmap's built-in dictionary (smalldict.txt \u2014 10,180 common passwords). Default: false."
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_privileges",
+   "label": "sqlmap privileges",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Check current user privileges.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_read_file",
+   "label": "sqlmap read file",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Read file from server filesystem.",
+   "fields": [
+    {
+     "name": "file",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "File path to read"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_results",
+   "label": "sqlmap results",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get results of a completed scan.",
+   "fields": [
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_scan",
+   "label": "sqlmap scan",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Run a full SQL injection scan against a target URL using all injection techniques. Runs synchronously and returns complete structured results including vulnerability status, DBMS info, injected parame",
+   "fields": [
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL to test (GET or POST)"
+    },
+    {
+     "name": "auth_cred",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP authentication credentials: user:password"
+    },
+    {
+     "name": "auth_type",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP authentication type: Basic, Digest, NTLM"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Session cookie for authenticated scans (optional)"
+    },
+    {
+     "name": "data",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "POST body data (optional, e.g. 'user=a&pass=b')"
+    },
+    {
+     "name": "dbms",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Force backend DBMS: mysql, mssql, oracle, postgresql, sqlite, access, firebird, maxdb, sybase, db2, hsqldb, h2, informix (speeds up scan)"
+    },
+    {
+     "name": "delay",
+     "type": "number",
+     "required": false,
+     "default": 0,
+     "enum": null,
+     "hint": "Delay in seconds between each HTTP request (0 = no delay)"
+    },
+    {
+     "name": "headers",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Extra HTTP headers, newline-separated e.g. 'X-Forwarded-For: 127.0.0.1'"
+    },
+    {
+     "name": "level",
+     "type": "number",
+     "required": false,
+     "default": 3,
+     "enum": null,
+     "hint": "Test depth 1-5 (5 = most thorough)"
+    },
+    {
+     "name": "proxy",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "HTTP/HTTPS proxy URL e.g. http://127.0.0.1:8080"
+    },
+    {
+     "name": "retries",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Retries when connection timeout (default 2)"
+    },
+    {
+     "name": "risk",
+     "type": "number",
+     "required": false,
+     "default": 2,
+     "enum": null,
+     "hint": "Risk level 1-3 (3 = all payloads)"
+    },
+    {
+     "name": "tamper",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Tamper script(s) comma-separated for WAF bypass e.g. space2comment,between,randomcase"
+    },
+    {
+     "name": "technique",
+     "type": "text",
+     "required": false,
+     "default": "BEUSTQ",
+     "enum": null,
+     "hint": "Injection techniques to test (any combo of B E U S T Q)"
+    },
+    {
+     "name": "threads",
+     "type": "number",
+     "required": false,
+     "default": 4,
+     "enum": null,
+     "hint": "Concurrent threads 1-10"
+    },
+    {
+     "name": "time_sec",
+     "type": "number",
+     "required": false,
+     "default": 5,
+     "enum": null,
+     "hint": "Seconds to delay for time-based blind SQLi detection (default 5)"
+    },
+    {
+     "name": "timeout_secs",
+     "type": "number",
+     "required": false,
+     "default": 30,
+     "enum": null,
+     "hint": "Seconds to wait for connection (default 30)"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_shell",
+   "label": "sqlmap shell",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Get interactive sqlmap shell for manual commands.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_status",
+   "label": "sqlmap status",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Check status of a background scan.",
+   "fields": [
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_users",
+   "label": "sqlmap users",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Get database users and their roles.",
+   "fields": [
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    },
+    {
+     "name": "scan_id",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Scan ID from sqlmap_scan"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL with SQLi"
+    }
+   ]
+  },
+  {
+   "server": "sqlmap",
+   "action": "sqlmap_write_file",
+   "label": "sqlmap write file",
+   "category": "Web Attacks",
+   "needs": "URL",
+   "risk": "critical",
+   "offensive": true,
+   "hint": "Write file to server filesystem.",
+   "fields": [
+    {
+     "name": "content",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Content to write"
+    },
+    {
+     "name": "file",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "File path to write"
+    },
+    {
+     "name": "target",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "Target URL"
+    },
+    {
+     "name": "cookie",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Cookie (optional)"
+    }
+   ]
+  },
+  {
+   "server": "wpscan",
+   "action": "wp_enum_plugins",
+   "label": "wp enum plugins",
+   "category": "Web Attacks",
+   "needs": "WordPress URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate installed WordPress plugins and check for known vulnerabilities using WPScan.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "WordPress site URL"
+    },
+    {
+     "name": "api_token",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "WPVulnDB API token (optional)"
+    },
+    {
+     "name": "detection_mode",
+     "type": "text",
+     "required": false,
+     "default": "mixed",
+     "enum": [
+      "passive",
+      "aggressive",
+      "mixed"
+     ],
+     "hint": "Plugin detection mode: passive, aggressive, or mixed"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "wpscan",
+   "action": "wp_enum_themes",
+   "label": "wp enum themes",
+   "category": "Web Attacks",
+   "needs": "WordPress URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate installed WordPress themes and check for known vulnerabilities using WPScan.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "WordPress site URL"
+    },
+    {
+     "name": "detection_mode",
+     "type": "text",
+     "required": false,
+     "default": "mixed",
+     "enum": [
+      "passive",
+      "aggressive",
+      "mixed"
+     ],
+     "hint": "Theme detection mode: passive, aggressive, or mixed"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  },
+  {
+   "server": "wpscan",
+   "action": "wp_enum_users",
+   "label": "wp enum users",
+   "category": "Web Attacks",
+   "needs": "WordPress URL",
+   "risk": "high",
+   "offensive": false,
+   "hint": "Enumerate WordPress user accounts via WPScan \u2014 checks author pages, REST API, XML-RPC, and login hints.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "WordPress site URL"
+    },
+    {
+     "name": "max_users",
+     "type": "number",
+     "required": false,
+     "default": 25,
+     "enum": null,
+     "hint": "Maximum number of user IDs to probe"
+    },
+    {
+     "name": "passwords",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for password brute-force (passwords, common, big). Leave empty to enumerate only without brute-force."
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 120,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    },
+    {
+     "name": "usernames",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "Built-in wordlist name for username enumeration (usernames, common). Leave empty to auto-detect via WordPress API."
+    }
+   ]
+  },
+  {
+   "server": "wpscan",
+   "action": "wp_scan",
+   "label": "wp scan",
+   "category": "Web Attacks",
+   "needs": "WordPress URL",
+   "risk": "medium",
+   "offensive": false,
+   "hint": "Run a full WPScan against a WordPress site. Detects version, vulnerable plugins/themes, user accounts, and configuration issues.",
+   "fields": [
+    {
+     "name": "url",
+     "type": "text",
+     "required": true,
+     "default": null,
+     "enum": null,
+     "hint": "WordPress site URL (e.g., https://example.com)"
+    },
+    {
+     "name": "api_token",
+     "type": "text",
+     "required": false,
+     "default": null,
+     "enum": null,
+     "hint": "WPVulnDB API token (optional \u2014 increases vuln data quality)"
+    },
+    {
+     "name": "enumerate",
+     "type": "text",
+     "required": false,
+     "default": "u,vp,vt",
+     "enum": null,
+     "hint": "What to enumerate: u=users, p=plugins, t=themes, vp=vulnerable plugins, vt=vulnerable themes, ap=all plugins, at=all themes. Combine with commas: u,vp,vt"
+    },
+    {
+     "name": "timeout",
+     "type": "number",
+     "required": false,
+     "default": 300,
+     "enum": null,
+     "hint": "Scan timeout in seconds"
+    }
+   ]
+  }
+ ],
+ "native_actions": {
+  "nmap": [
+   "nmap_scan",
+   "os_detect",
+   "port_check"
+  ],
+  "cve": [
+   "cpe_search",
+   "get_severity",
+   "lookup_cve",
+   "search_cves"
+  ],
+  "nuclei": [
+   "list_templates",
+   "nuclei_cve_scan",
+   "nuclei_scan",
+   "nuclei_tech_detect"
+  ],
+  "waf": [
+   "analyze_evasion",
+   "fingerprint_waf",
+   "test_bypass"
+  ],
+  "masscan": [
+   "masscan_range",
+   "masscan_scan",
+   "masscan_top_ports"
+  ],
+  "nikto": [
+   "nikto_scan",
+   "nikto_ssl_only",
+   "nikto_tuning"
+  ],
+  "wpscan": [
+   "wp_enum_plugins",
+   "wp_enum_themes",
+   "wp_enum_users",
+   "wp_scan"
+  ],
+  "jwt": [
+   "analyze_claims",
+   "decode_jwt",
+   "forge_jwt",
+   "test_alg_none",
+   "test_weak_secret"
+  ],
+  "cve_lite": [
+   "cve_lite_scan"
+  ],
+  "metasploit": [
+   "generate_payload",
+   "get_module_info",
+   "list_active_sessions",
+   "list_exploits",
+   "list_listeners",
+   "list_payloads",
+   "run_auxiliary_module",
+   "run_exploit",
+   "run_post_module",
+   "send_session_command",
+   "start_listener",
+   "stop_job",
+   "terminate_session"
+  ],
+  "cisa_kev": [
+   "check_kev",
+   "get_kev_stats",
+   "get_recent_kev",
+   "search_kev"
+  ],
+  "epss": [
+   "epss_priority_analysis",
+   "get_epss_score",
+   "get_epss_scores_bulk",
+   "get_high_epss_cves"
+  ],
+  "poc_index": [
+   "get_exploitdb_entry",
+   "poc_risk_summary",
+   "search_github_poc",
+   "search_poc"
+  ],
+  "exploitdb": [
+   "export_search_results",
+   "find_by_cve",
+   "get_exploit",
+   "get_recent_exploits",
+   "get_trending_exploits",
+   "search_by_platform",
+   "search_by_type",
+   "search_exploits"
+  ],
+  "mitre": [
+   "generate_layer",
+   "get_all_tactics",
+   "get_data_stats",
+   "get_groups_using_technique",
+   "get_mitigations_for_technique",
+   "get_software_using_technique",
+   "get_subtechniques_of_technique",
+   "get_technique_by_id",
+   "get_technique_tactics",
+   "get_techniques_by_platform",
+   "get_techniques_by_tactic",
+   "get_techniques_mitigated_by",
+   "get_techniques_used_by_group",
+   "search_groups",
+   "search_software",
+   "search_techniques"
+  ],
+  "ssl": [
+   "check_ssl"
+  ],
+  "ffuf": [
+   "ffuf_fuzz"
+  ],
+  "sqlmap": [
+   "sqlmap_full_chain",
+   "sqlmap_scan"
+  ],
+  "gobuster": [
+   "gobuster_dir",
+   "gobuster_dns",
+   "gobuster_fuzz",
+   "gobuster_vhost"
+  ],
+  "osint": [
+   "dns_lookup",
+   "http_headers",
+   "ip_geolocation",
+   "ssl_info",
+   "subdomain_enum",
+   "tech_fingerprint",
+   "whois_lookup"
+  ],
+  "anomaly": [],
+  "payload_generator": [],
+  "ad": [],
+  "cloud": [],
+  "container": [],
+  "api_security": [],
+  "secrets": [],
+  "dns_deep": [],
+  "crack": [],
+  "compliance": []
+ }
+}
